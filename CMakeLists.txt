@@ -300,6 +300,7 @@ SET(XNNPACK_SRCS
   src/configs/conv-hwc2chw-config.c
   src/configs/dwconv-config.c
   src/configs/dwconv2d-chw-config.c
+  src/configs/experiments-config.c
   src/configs/gavgpool-config.c
   src/configs/gavgpool-cw-config.c
   src/configs/gemm-config.c
@@ -526,6 +527,7 @@ IF(XNNPACK_BUILD_LIBRARY)
   # Need C_EXTENSIONS to get constants for mmap (MAP_ANONYMOUS).
   SET_TARGET_PROPERTIES(memory PROPERTIES C_EXTENSIONS YES)
   ADD_LIBRARY(convolution-test-helpers OBJECT test/convolution-test-helpers.cc)
+  TARGET_INCLUDE_DIRECTORIES(convolution-test-helpers PRIVATE include src)
   ADD_LIBRARY(post-operation OBJECT src/operators/post-operation.c)
   IF(XNNPACK_LIBRARY_TYPE STREQUAL "default")
     ADD_LIBRARY(XNNPACK ${XNNPACK_SRCS})
@@ -1535,7 +1537,7 @@ IF(XNNPACK_BUILD_TESTS)
 
     ADD_EXECUTABLE(fully-connected-test test/fully-connected.cc)
     TARGET_INCLUDE_DIRECTORIES(fully-connected-test PRIVATE src test)
-    TARGET_LINK_LIBRARIES(fully-connected-test PRIVATE XNNPACK fp16 gtest gtest_main subgraph)
+    TARGET_LINK_LIBRARIES(fully-connected-test PRIVATE XNNPACK fp16 gmock gtest gtest_main subgraph)
     ADD_TEST(NAME fully-connected-test COMMAND fully-connected-test)
 
     ADD_EXECUTABLE(global-average-pooling-1d-test test/global-average-pooling-1d.cc)
@@ -2693,7 +2695,7 @@ IF(XNNPACK_BUILD_TESTS)
   TARGET_LINK_LIBRARIES(qd8-f32-qc4w-gemm-minmax-test PRIVATE gemm-microkernel-tester hardware-config logging microkernels-all microparams-init)
   ADD_TEST(NAME qd8-f32-qc4w-gemm-minmax-test COMMAND qd8-f32-qc4w-gemm-minmax-test)
 
-  ADD_EXECUTABLE(qd8-f32-qc8w-igemm-minmax-test test/qd8-f32-qc8w-igemm-minmax.cc)
+  ADD_EXECUTABLE(qd8-f32-qc8w-igemm-minmax-test test/qd8-f32-qc8w-igemm-minmax.cc  test/qd8-f32-qc8w-igemm-minmax-2.cc  test/qd8-f32-qc8w-igemm-minmax-3.cc)
   TARGET_INCLUDE_DIRECTORIES(qd8-f32-qc8w-igemm-minmax-test PRIVATE include src test)
   TARGET_LINK_LIBRARIES(qd8-f32-qc8w-igemm-minmax-test PRIVATE fp16 pthreadpool gtest gtest_main)
   TARGET_LINK_LIBRARIES(qd8-f32-qc8w-igemm-minmax-test PRIVATE gemm-microkernel-tester hardware-config logging microkernels-all microparams-init)
@@ -3699,7 +3701,7 @@ IF(XNNPACK_BUILD_BENCHMARKS)
 
   ADD_EXECUTABLE(f16-f32-vcvt-bench bench/f16-f32-vcvt.cc)
   TARGET_INCLUDE_DIRECTORIES(f16-f32-vcvt-bench PRIVATE . include src)
-  TARGET_LINK_LIBRARIES(f16-f32-vcvt-bench PRIVATE benchmark fp16 pthreadpool)
+  TARGET_LINK_LIBRARIES(f16-f32-vcvt-bench PRIVATE fp16 benchmark fp16 pthreadpool)
   TARGET_LINK_LIBRARIES(f16-f32-vcvt-bench PRIVATE bench-utils hardware-config logging microkernels-all microparams-init)
 
   ADD_EXECUTABLE(f32-bgemm-bench bench/f32-bgemm.cc)
@@ -3729,7 +3731,7 @@ IF(XNNPACK_BUILD_BENCHMARKS)
 
   ADD_EXECUTABLE(f32-f16-vcvt-bench bench/f32-f16-vcvt.cc)
   TARGET_INCLUDE_DIRECTORIES(f32-f16-vcvt-bench PRIVATE . include src)
-  TARGET_LINK_LIBRARIES(f32-f16-vcvt-bench PRIVATE benchmark pthreadpool)
+  TARGET_LINK_LIBRARIES(f32-f16-vcvt-bench PRIVATE fp16 benchmark pthreadpool)
   TARGET_LINK_LIBRARIES(f32-f16-vcvt-bench PRIVATE bench-utils hardware-config logging microkernels-all microparams-init)
 
   ADD_EXECUTABLE(f32-gavgpool-cw-bench bench/f32-gavgpool-cw.cc)
@@ -3774,12 +3776,12 @@ IF(XNNPACK_BUILD_BENCHMARKS)
 
   ADD_EXECUTABLE(f32-qs8-vcvt-bench bench/f32-qs8-vcvt.cc)
   TARGET_INCLUDE_DIRECTORIES(f32-qs8-vcvt-bench PRIVATE . include src)
-  TARGET_LINK_LIBRARIES(f32-qs8-vcvt-bench PRIVATE benchmark pthreadpool)
+  TARGET_LINK_LIBRARIES(f32-qs8-vcvt-bench PRIVATE fp16 benchmark pthreadpool)
   TARGET_LINK_LIBRARIES(f32-qs8-vcvt-bench PRIVATE bench-utils hardware-config logging microkernels-all microparams-init)
 
   ADD_EXECUTABLE(f32-qu8-vcvt-bench bench/f32-qu8-vcvt.cc)
   TARGET_INCLUDE_DIRECTORIES(f32-qu8-vcvt-bench PRIVATE . include src)
-  TARGET_LINK_LIBRARIES(f32-qu8-vcvt-bench PRIVATE benchmark pthreadpool)
+  TARGET_LINK_LIBRARIES(f32-qu8-vcvt-bench PRIVATE fp16 benchmark pthreadpool)
   TARGET_LINK_LIBRARIES(f32-qu8-vcvt-bench PRIVATE bench-utils hardware-config logging microkernels-all microparams-init)
 
   ADD_EXECUTABLE(f32-raddstoreexpminusmax-bench bench/f32-raddstoreexpminusmax.cc)
@@ -3919,7 +3921,7 @@ IF(XNNPACK_BUILD_BENCHMARKS)
 
   ADD_EXECUTABLE(qs8-f32-vcvt-bench bench/qs8-f32-vcvt.cc)
   TARGET_INCLUDE_DIRECTORIES(qs8-f32-vcvt-bench PRIVATE . include src)
-  TARGET_LINK_LIBRARIES(qs8-f32-vcvt-bench PRIVATE benchmark pthreadpool)
+  TARGET_LINK_LIBRARIES(qs8-f32-vcvt-bench PRIVATE fp16 benchmark pthreadpool)
   TARGET_LINK_LIBRARIES(qs8-f32-vcvt-bench PRIVATE bench-utils hardware-config logging microkernels-all microparams-init)
 
   ADD_EXECUTABLE(qs8-gemm-fp32-bench bench/qs8-gemm-fp32.cc)
@@ -3970,12 +3972,12 @@ IF(XNNPACK_BUILD_BENCHMARKS)
 
   ADD_EXECUTABLE(qs8-vcvt-bench bench/qs8-vcvt.cc)
   TARGET_INCLUDE_DIRECTORIES(qs8-vcvt-bench PRIVATE . include src)
-  TARGET_LINK_LIBRARIES(qs8-vcvt-bench PRIVATE benchmark pthreadpool)
+  TARGET_LINK_LIBRARIES(qs8-vcvt-bench PRIVATE fp16 benchmark pthreadpool)
   TARGET_LINK_LIBRARIES(qs8-vcvt-bench PRIVATE bench-utils hardware-config logging microkernels-all microparams-init)
 
   ADD_EXECUTABLE(qs16-qs8-vcvt-bench bench/qs16-qs8-vcvt.cc)
   TARGET_INCLUDE_DIRECTORIES(qs16-qs8-vcvt-bench PRIVATE . include src)
-  TARGET_LINK_LIBRARIES(qs16-qs8-vcvt-bench PRIVATE benchmark pthreadpool)
+  TARGET_LINK_LIBRARIES(qs16-qs8-vcvt-bench PRIVATE fp16 benchmark pthreadpool)
   TARGET_LINK_LIBRARIES(qs16-qs8-vcvt-bench PRIVATE bench-utils hardware-config logging microkernels-all microparams-init)
 
   ADD_EXECUTABLE(qs8-vhswish-bench bench/qs8-vhswish.cc)
@@ -4000,7 +4002,7 @@ IF(XNNPACK_BUILD_BENCHMARKS)
 
   ADD_EXECUTABLE(qu8-f32-vcvt-bench bench/qu8-f32-vcvt.cc)
   TARGET_INCLUDE_DIRECTORIES(qu8-f32-vcvt-bench PRIVATE . include src)
-  TARGET_LINK_LIBRARIES(qu8-f32-vcvt-bench PRIVATE benchmark pthreadpool)
+  TARGET_LINK_LIBRARIES(qu8-f32-vcvt-bench PRIVATE fp16 benchmark pthreadpool)
   TARGET_LINK_LIBRARIES(qu8-f32-vcvt-bench PRIVATE bench-utils hardware-config logging microkernels-all microparams-init)
 
   ADD_EXECUTABLE(qu8-gemm-bench bench/qu8-gemm.cc)
@@ -4026,7 +4028,7 @@ IF(XNNPACK_BUILD_BENCHMARKS)
 
   ADD_EXECUTABLE(qu8-vcvt-bench bench/qu8-vcvt.cc)
   TARGET_INCLUDE_DIRECTORIES(qu8-vcvt-bench PRIVATE . include src)
-  TARGET_LINK_LIBRARIES(qu8-vcvt-bench PRIVATE benchmark pthreadpool)
+  TARGET_LINK_LIBRARIES(qu8-vcvt-bench PRIVATE fp16 benchmark pthreadpool)
   TARGET_LINK_LIBRARIES(qu8-vcvt-bench PRIVATE bench-utils hardware-config logging microkernels-all microparams-init)
 
   ADD_EXECUTABLE(qu8-vhswish-bench bench/qu8-vhswish.cc)

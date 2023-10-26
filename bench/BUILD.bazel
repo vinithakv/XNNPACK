@@ -24,6 +24,7 @@ MICROKERNEL_BENCHMARK_DEPS = [
     "//:bench_microkernels",
     "//:common",
     "//:enable_assembly",
+    "//:jit",
     "//:microkernels_h",
     "//:packing",
     "//:params",
@@ -112,6 +113,7 @@ xnnpack_benchmark(
     name = "qs8_f32_vcvt_bench",
     srcs = [
         "qs8-f32-vcvt.cc",
+        "vcvt-benchmark.h",
     ],
     deps = MICROKERNEL_BENCHMARK_DEPS,
 )
@@ -190,6 +192,7 @@ xnnpack_benchmark(
     name = "qs8_vcvt_bench",
     srcs = [
         "qs8-vcvt.cc",
+        "vcvt-benchmark.h",
     ],
     deps = MICROKERNEL_BENCHMARK_DEPS,
 )
@@ -198,6 +201,7 @@ xnnpack_benchmark(
     name = "qs16_qs8_vcvt_bench",
     srcs = [
         "qs16-qs8-vcvt.cc",
+        "vcvt-benchmark.h",
     ],
     deps = MICROKERNEL_BENCHMARK_DEPS,
 )
@@ -238,6 +242,7 @@ xnnpack_benchmark(
     name = "qu8_f32_vcvt_bench",
     srcs = [
         "qu8-f32-vcvt.cc",
+        "vcvt-benchmark.h",
     ],
     deps = MICROKERNEL_BENCHMARK_DEPS,
 )
@@ -304,6 +309,7 @@ xnnpack_benchmark(
     name = "qu8_vcvt_bench",
     srcs = [
         "qu8-vcvt.cc",
+        "vcvt-benchmark.h",
     ],
     deps = MICROKERNEL_BENCHMARK_DEPS,
 )
@@ -450,6 +456,7 @@ xnnpack_benchmark(
     name = "f16_f32_vcvt_bench",
     srcs = [
         "f16-f32-vcvt.cc",
+        "vcvt-benchmark.h",
     ],
     deps = MICROKERNEL_BENCHMARK_DEPS,
 )
@@ -566,6 +573,7 @@ xnnpack_benchmark(
     name = "f32_f16_vcvt_bench",
     srcs = [
         "f32-f16-vcvt.cc",
+        "vcvt-benchmark.h",
     ],
     deps = MICROKERNEL_BENCHMARK_DEPS,
 )
@@ -704,6 +712,7 @@ xnnpack_benchmark(
     name = "f32_qs8_vcvt_bench",
     srcs = [
         "f32-qs8-vcvt.cc",
+        "vcvt-benchmark.h",
     ],
     deps = MICROKERNEL_BENCHMARK_DEPS,
 )
@@ -712,6 +721,7 @@ xnnpack_benchmark(
     name = "f32_qu8_vcvt_bench",
     srcs = [
         "f32-qu8-vcvt.cc",
+        "vcvt-benchmark.h",
     ],
     deps = MICROKERNEL_BENCHMARK_DEPS,
 )
@@ -1266,6 +1276,7 @@ xnnpack_benchmark(
     name = "jit_bench",
     srcs = ["jit.cc"],
     deps = OPERATOR_BENCHMARK_DEPS + [
+        "//:jit",
         "//:memory",
         "//:microkernels_h",
         "//:microparams",
