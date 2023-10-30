@@ -122,8 +122,10 @@ static void init_hardware_config(void) {
     unsigned long HWCAPs_2 = getauxval(AT_HWCAP2);
     if (HWCAPs & PPC_FEATURE_HAS_VSX)
       hardware_config.use_vsx = 1;
-    #if defined  PPC_FEATURE2_ARCH_3_1
-       if (HWCAPs_2 & PPC_FEATURE2_MMA)
+    #if defined PPC_FEATURE2_ARCH_3_1
+      if (HWCAPs_2 &  PPC_FEATURE2_ARCH_3_1)
+        hardware_config.use_vsx3 = 1;
+      if (HWCAPs_2 & PPC_FEATURE2_MMA)
         hardware_config.use_mma = 1;
     #endif
   #endif
