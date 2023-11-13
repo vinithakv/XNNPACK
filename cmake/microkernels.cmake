@@ -500,6 +500,9 @@ SET(ALL_AVX_MICROKERNEL_SRCS
   src/qs8-vcvt/gen/qs8-vcvt-avx-u8.c
   src/qs8-vcvt/gen/qs8-vcvt-avx-u16.c
   src/qs8-vcvt/gen/qs8-vcvt-avx-u32.c
+  src/qs8-vhswish/gen/qs8-vhswish-avx-u8.c
+  src/qs8-vhswish/gen/qs8-vhswish-avx-u16.c
+  src/qs8-vhswish/gen/qs8-vhswish-avx-u32.c
   src/qs8-vlrelu/gen/qs8-vlrelu-avx-u8.c
   src/qs8-vlrelu/gen/qs8-vlrelu-avx-u16.c
   src/qs8-vlrelu/gen/qs8-vlrelu-avx-u32.c
@@ -583,6 +586,9 @@ SET(ALL_AVX_MICROKERNEL_SRCS
   src/qu8-vcvt/gen/qu8-vcvt-avx-u8.c
   src/qu8-vcvt/gen/qu8-vcvt-avx-u16.c
   src/qu8-vcvt/gen/qu8-vcvt-avx-u32.c
+  src/qu8-vhswish/gen/qu8-vhswish-avx-u8.c
+  src/qu8-vhswish/gen/qu8-vhswish-avx-u16.c
+  src/qu8-vhswish/gen/qu8-vhswish-avx-u32.c
   src/qu8-vlrelu/gen/qu8-vlrelu-avx-u8.c
   src/qu8-vlrelu/gen/qu8-vlrelu-avx-u16.c
   src/qu8-vlrelu/gen/qu8-vlrelu-avx-u32.c
@@ -1713,6 +1719,13 @@ SET(ALL_AVX512VBMI_MICROKERNEL_SRCS
   src/x8-lut/gen/x8-lut-avx512vbmi-vpermx2b-u256.c)
 
 SET(ALL_AVX512VNNI_MICROKERNEL_SRCS
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-1x16c4-minmax-avx512vnni.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-2x16c4-minmax-avx512vnni.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-3x16c4-minmax-avx512vnni.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-4x16c4-minmax-avx512vnni.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-5x16c4-minmax-avx512vnni.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-6x16c4-minmax-avx512vnni.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-7x16c4-minmax-avx512vnni.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-1x16c4-minmax-avx512vnni.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-2x16c4-minmax-avx512vnni.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-3x16c4-minmax-avx512vnni.c
@@ -1754,6 +1767,8 @@ SET(ALL_AVX512VNNI_MICROKERNEL_SRCS
   src/qs8-qc8w-igemm/gen/qs8-qc8w-igemm-7x16c4-minmax-avx512vnni.c
   src/qs8-qc8w-igemm/gen/qs8-qc8w-igemm-8x16c4-minmax-avx512vnni.c)
 
+SET(ALL_AVXVNNI_MICROKERNEL_SRCS)
+
 SET(ALL_F16C_MICROKERNEL_SRCS
   src/f16-avgpool/f16-avgpool-9p8x-minmax-f16c-c8.c
   src/f16-avgpool/f16-avgpool-9x-minmax-f16c-c8.c
@@ -1775,7 +1790,7 @@ SET(ALL_F16C_MICROKERNEL_SRCS
   src/f16-maxpool/f16-maxpool-9p8x-minmax-f16c-c8.c
   src/f16-prelu/gen/f16-prelu-f16c-2x8.c
   src/f16-prelu/gen/f16-prelu-f16c-2x16.c
-  src/f16-rmax/f16-rmax-f16c-u32.c
+  src/f16-rminmax/f16-rmax-f16c-u32.c
   src/f16-vbinary/gen/f16-vadd-minmax-f16c-u8.c
   src/f16-vbinary/gen/f16-vadd-minmax-f16c-u16.c
   src/f16-vbinary/gen/f16-vaddc-minmax-f16c-u8.c
@@ -2387,23 +2402,31 @@ SET(ALL_NEON_MICROKERNEL_SRCS
   src/f32-gavgpool/f32-gavgpool-7x-minmax-neon-c4.c
   src/f32-gemm/gen/f32-gemm-1x8-minmax-neon-dup-ld64.c
   src/f32-gemm/gen/f32-gemm-1x8-minmax-neon-lane-ld64.c
+  src/f32-gemm/gen/f32-gemm-1x8-minmax-neon-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-1x8s4-minmax-neon.c
+  src/f32-gemm/gen/f32-gemm-1x16-minmax-neon-lane-ld128.c
+  src/f32-gemm/gen/f32-gemm-2x16-minmax-neon-lane-ld128.c
+  src/f32-gemm/gen/f32-gemm-3x16-minmax-neon-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-4x2-minmax-neon-lane-ld64.c
   src/f32-gemm/gen/f32-gemm-4x8-minmax-neon-dup-ld64.c
   src/f32-gemm/gen/f32-gemm-4x8-minmax-neon-dup-ld128.c
   src/f32-gemm/gen/f32-gemm-4x8-minmax-neon-lane-ld64.c
   src/f32-gemm/gen/f32-gemm-4x8-minmax-neon-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-4x8s4-minmax-neon.c
+  src/f32-gemm/gen/f32-gemm-4x16-minmax-neon-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-5x8-minmax-neon-lane-ld64.c
+  src/f32-gemm/gen/f32-gemm-5x16-minmax-neon-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-6x2-minmax-neon-lane-ld64.c
   src/f32-gemm/gen/f32-gemm-6x8-minmax-neon-dup-ld64.c
   src/f32-gemm/gen/f32-gemm-6x8-minmax-neon-dup-ld128.c
   src/f32-gemm/gen/f32-gemm-6x8-minmax-neon-lane-ld64.c
   src/f32-gemm/gen/f32-gemm-6x8-minmax-neon-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-6x8s4-minmax-neon.c
+  src/f32-gemm/gen/f32-gemm-6x16-minmax-neon-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-8x8s4-minmax-neon.c
   src/f32-gemminc/gen/f32-gemminc-1x8-minmax-neon-dup-ld64.c
   src/f32-gemminc/gen/f32-gemminc-1x8-minmax-neon-lane-ld64.c
+  src/f32-gemminc/gen/f32-gemminc-1x8-minmax-neon-lane-ld128.c
   src/f32-gemminc/gen/f32-gemminc-1x8s4-minmax-neon.c
   src/f32-gemminc/gen/f32-gemminc-4x8-minmax-neon-dup-ld64.c
   src/f32-gemminc/gen/f32-gemminc-4x8-minmax-neon-dup-ld128.c
@@ -2424,7 +2447,11 @@ SET(ALL_NEON_MICROKERNEL_SRCS
   src/f32-ibilinear/gen/f32-ibilinear-neon-c8.c
   src/f32-igemm/gen/f32-igemm-1x8-minmax-neon-dup-ld64.c
   src/f32-igemm/gen/f32-igemm-1x8-minmax-neon-lane-ld64.c
+  src/f32-igemm/gen/f32-igemm-1x8-minmax-neon-lane-ld128.c
   src/f32-igemm/gen/f32-igemm-1x8s4-minmax-neon.c
+  src/f32-igemm/gen/f32-igemm-1x16-minmax-neon-lane-ld128.c
+  src/f32-igemm/gen/f32-igemm-2x16-minmax-neon-lane-ld128.c
+  src/f32-igemm/gen/f32-igemm-3x16-minmax-neon-lane-ld128.c
   src/f32-igemm/gen/f32-igemm-4x2-minmax-neon-lane-ld64.c
   src/f32-igemm/gen/f32-igemm-4x4-minmax-neon-lane-ld64.c
   src/f32-igemm/gen/f32-igemm-4x8-minmax-neon-dup-ld64.c
@@ -2432,12 +2459,15 @@ SET(ALL_NEON_MICROKERNEL_SRCS
   src/f32-igemm/gen/f32-igemm-4x8-minmax-neon-lane-ld64.c
   src/f32-igemm/gen/f32-igemm-4x8-minmax-neon-lane-ld128.c
   src/f32-igemm/gen/f32-igemm-4x8s4-minmax-neon.c
+  src/f32-igemm/gen/f32-igemm-4x16-minmax-neon-lane-ld128.c
+  src/f32-igemm/gen/f32-igemm-5x16-minmax-neon-lane-ld128.c
   src/f32-igemm/gen/f32-igemm-6x2-minmax-neon-lane-ld64.c
   src/f32-igemm/gen/f32-igemm-6x8-minmax-neon-dup-ld64.c
   src/f32-igemm/gen/f32-igemm-6x8-minmax-neon-dup-ld128.c
   src/f32-igemm/gen/f32-igemm-6x8-minmax-neon-lane-ld64.c
   src/f32-igemm/gen/f32-igemm-6x8-minmax-neon-lane-ld128.c
   src/f32-igemm/gen/f32-igemm-6x8s4-minmax-neon.c
+  src/f32-igemm/gen/f32-igemm-6x16-minmax-neon-lane-ld128.c
   src/f32-igemm/gen/f32-igemm-8x8s4-minmax-neon.c
   src/f32-maxpool/f32-maxpool-9p8x-minmax-neon-c4.c
   src/f32-pavgpool/f32-pavgpool-9p8x-minmax-neon-c4.c
@@ -3376,9 +3406,6 @@ SET(ALL_NEON_MICROKERNEL_SRCS
   src/qs8-vhswish/gen/qs8-vhswish-neon-u8.c
   src/qs8-vhswish/gen/qs8-vhswish-neon-u16.c
   src/qs8-vhswish/gen/qs8-vhswish-neon-u32.c
-  src/qs8-vhswish/gen/qs8-vhswish-neon-x8.c
-  src/qs8-vhswish/gen/qs8-vhswish-neon-x16.c
-  src/qs8-vhswish/gen/qs8-vhswish-neon-x32.c
   src/qs8-vlrelu/gen/qs8-vlrelu-neon-u8.c
   src/qs8-vlrelu/gen/qs8-vlrelu-neon-u16.c
   src/qs8-vlrelu/gen/qs8-vlrelu-neon-u32.c
@@ -3506,9 +3533,9 @@ SET(ALL_NEON_MICROKERNEL_SRCS
   src/qu8-vcvt/gen/qu8-vcvt-neon-u8.c
   src/qu8-vcvt/gen/qu8-vcvt-neon-u16.c
   src/qu8-vcvt/gen/qu8-vcvt-neon-u32.c
-  src/qu8-vhswish/gen/qu8-vhswish-neon-x8.c
-  src/qu8-vhswish/gen/qu8-vhswish-neon-x16.c
-  src/qu8-vhswish/gen/qu8-vhswish-neon-x32.c
+  src/qu8-vhswish/gen/qu8-vhswish-neon-u8.c
+  src/qu8-vhswish/gen/qu8-vhswish-neon-u16.c
+  src/qu8-vhswish/gen/qu8-vhswish-neon-u32.c
   src/qu8-vlrelu/gen/qu8-vlrelu-neon-u8.c
   src/qu8-vlrelu/gen/qu8-vlrelu-neon-u16.c
   src/qu8-vlrelu/gen/qu8-vlrelu-neon-u32.c
@@ -3709,9 +3736,12 @@ SET(ALL_NEONDOT_MICROKERNEL_SRCS
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-1x16c8-minmax-neondot-ld64.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-2x8c4-minmax-neondot.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-2x16c4-minmax-neondot.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-3x8c4-minmax-neondot.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-3x16c4-minmax-neondot.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-4x8c4-minmax-neondot.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-4x16c4-minmax-neondot.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-5x8c4-minmax-neondot.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-5x16c4-minmax-neondot.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-6x8c4-minmax-neondot.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-6x16c4-minmax-neondot.c
   src/qd8-f32-qc8w-igemm/gen/qd8-f32-qc8w-igemm-1x8c4-minmax-neondot.c
@@ -3832,6 +3862,32 @@ SET(ALL_NEONDOT_AARCH64_MICROKERNEL_SRCS
   src/qs8-qc8w-gemm/gen/qs8-qc8w-gemm-1x16c8-minmax-fp32-aarch64-neondot-ld128.c
   src/qs8-qc8w-igemm/gen/qs8-qc8w-igemm-1x8c8-minmax-fp32-aarch64-neondot-ld128.c
   src/qs8-qc8w-igemm/gen/qs8-qc8w-igemm-1x16c8-minmax-fp32-aarch64-neondot-ld128.c)
+
+SET(ALL_NEONDOTFP16ARITH_MICROKERNEL_SRCS
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-1x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-1x16c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-2x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-2x16c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-3x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-3x16c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-4x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-4x16c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-5x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-5x16c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-6x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-6x16c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-1x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-1x16c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-2x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-2x16c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-3x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-3x16c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-4x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-4x16c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-5x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-5x16c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-6x8c4-minmax-neondotfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-6x16c4-minmax-neondotfp16arith.c)
 
 SET(ALL_NEONFMA_MICROKERNEL_SRCS
   src/bf16-gemm/gen/bf16-gemm-1x4c8-minmax-neonfma-shland.c
@@ -4170,29 +4226,42 @@ SET(ALL_NEONFMA_AARCH64_MICROKERNEL_SRCS
   src/f32-dwconv2d-chw/gen/f32-dwconv2d-chw-5x5s2p2-minmax-aarch64-neonfma-3x4-acc2.c
   src/f32-dwconv2d-chw/gen/f32-dwconv2d-chw-5x5s2p2-minmax-aarch64-neonfma-3x4.c
   src/f32-gemm/gen/f32-gemm-1x8-minmax-aarch64-neonfma-lane-ld64.c
+  src/f32-gemm/gen/f32-gemm-1x8-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-1x16-minmax-aarch64-neonfma-lane-ld128.c
+  src/f32-gemm/gen/f32-gemm-2x16-minmax-aarch64-neonfma-lane-ld128.c
+  src/f32-gemm/gen/f32-gemm-3x16-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-4x2-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-gemm/gen/f32-gemm-4x8-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-gemm/gen/f32-gemm-4x8-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-4x16-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-5x8-minmax-aarch64-neonfma-lane-ld64.c
+  src/f32-gemm/gen/f32-gemm-5x16-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-gemm/gen/f32-gemm-6x2-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-gemm/gen/f32-gemm-6x8-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-gemm/gen/f32-gemm-6x8-minmax-aarch64-neonfma-lane-ld128.c
+  src/f32-gemm/gen/f32-gemm-6x16-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-gemminc/gen/f32-gemminc-1x8-minmax-aarch64-neonfma-lane-ld64.c
+  src/f32-gemminc/gen/f32-gemminc-1x8-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-gemminc/gen/f32-gemminc-4x8-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-gemminc/gen/f32-gemminc-4x8-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-gemminc/gen/f32-gemminc-5x8-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-gemminc/gen/f32-gemminc-6x8-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-gemminc/gen/f32-gemminc-6x8-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-igemm/gen/f32-igemm-1x8-minmax-aarch64-neonfma-lane-ld64.c
+  src/f32-igemm/gen/f32-igemm-1x8-minmax-aarch64-neonfma-lane-ld128.c
+  src/f32-igemm/gen/f32-igemm-1x16-minmax-aarch64-neonfma-lane-ld128.c
+  src/f32-igemm/gen/f32-igemm-2x16-minmax-aarch64-neonfma-lane-ld128.c
+  src/f32-igemm/gen/f32-igemm-3x16-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-igemm/gen/f32-igemm-4x2-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-igemm/gen/f32-igemm-4x4-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-igemm/gen/f32-igemm-4x8-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-igemm/gen/f32-igemm-4x8-minmax-aarch64-neonfma-lane-ld128.c
+  src/f32-igemm/gen/f32-igemm-4x16-minmax-aarch64-neonfma-lane-ld128.c
+  src/f32-igemm/gen/f32-igemm-5x16-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-igemm/gen/f32-igemm-6x2-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-igemm/gen/f32-igemm-6x8-minmax-aarch64-neonfma-lane-ld64.c
   src/f32-igemm/gen/f32-igemm-6x8-minmax-aarch64-neonfma-lane-ld128.c
+  src/f32-igemm/gen/f32-igemm-6x16-minmax-aarch64-neonfma-lane-ld128.c
   src/f32-ppmm/gen/f32-ppmm-4x8-minmax-aarch64-neonfma-prfm.c
   src/f32-ppmm/gen/f32-ppmm-4x8-minmax-aarch64-neonfma.c
   src/f32-ppmm/gen/f32-ppmm-4x16-minmax-aarch64-neonfma-prfm.c
@@ -4406,6 +4475,11 @@ SET(ALL_NEONFP16ARITH_MICROKERNEL_SRCS
   src/f16-pavgpool/f16-pavgpool-9x-minmax-neonfp16arith-c8.c
   src/f16-prelu/gen/f16-prelu-neonfp16arith-2x8.c
   src/f16-prelu/gen/f16-prelu-neonfp16arith-2x16.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-neonfp16arith-u8.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-neonfp16arith-u16.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-neonfp16arith-u24.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-neonfp16arith-u32.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-neonfp16arith-u64.c
   src/f16-raddstoreexpminusmax/gen/f16-raddstoreexpminusmax-neonfp16arith-rr2-p2-u32-acc2.c
   src/f16-raddstoreexpminusmax/gen/f16-raddstoreexpminusmax-neonfp16arith-rr2-p2-u32-acc4.c
   src/f16-raddstoreexpminusmax/gen/f16-raddstoreexpminusmax-neonfp16arith-rr2-p2-u32.c
@@ -4427,7 +4501,42 @@ SET(ALL_NEONFP16ARITH_MICROKERNEL_SRCS
   src/f16-raddstoreexpminusmax/gen/f16-raddstoreexpminusmax-neonfp16arith-rr2-p2-u96-acc3.c
   src/f16-raddstoreexpminusmax/gen/f16-raddstoreexpminusmax-neonfp16arith-rr2-p2-u96-acc6.c
   src/f16-raddstoreexpminusmax/gen/f16-raddstoreexpminusmax-neonfp16arith-rr2-p2-u96.c
-  src/f16-rmax/f16-rmax-neonfp16arith-u32.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u8.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u16-acc1.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u16-acc2.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u24-acc2.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u24-acc3.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u24.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u32-acc2.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u32-acc4.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u32.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u64-acc2.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u64-acc4.c
+  src/f16-rminmax/gen/f16-rmax-neonfp16arith-u64.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u8.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u16-acc1.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u16-acc2.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24-acc2.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24-acc3.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u24.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32-acc2.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32-acc4.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u32.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64-acc2.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64-acc4.c
+  src/f16-rminmax/gen/f16-rmin-neonfp16arith-u64.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u8.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u16-acc1.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u16-acc2.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24-acc2.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24-acc3.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u24.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32-acc2.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32-acc4.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u32.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64-acc2.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64-acc4.c
+  src/f16-rminmax/gen/f16-rminmax-neonfp16arith-u64.c
   src/f16-rsum/gen/f16-rsum-neonfp16arith-u8.c
   src/f16-rsum/gen/f16-rsum-neonfp16arith-u16-acc2.c
   src/f16-rsum/gen/f16-rsum-neonfp16arith-u24-acc3.c
@@ -4610,30 +4719,102 @@ SET(ALL_NEONFP16ARITH_AARCH64_MICROKERNEL_SRCS
   src/math/gen/f16-tanh-aarch64-neonfp16arith-expm1minus-rr1-p3h2ts-div.c)
 
 SET(ALL_NEONI8MM_MICROKERNEL_SRCS
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-1x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-1x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-1x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-2x8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-2x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-2x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-3x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-3x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-3x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-4x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-4x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-4x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-5x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-5x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-5x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-6x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-6x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-6x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-7x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-7x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-7x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-8x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-8x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc4w-gemm/gen/qd8-f16-qc4w-gemm-8x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-1x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-1x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-1x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-2x8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-2x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-2x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-3x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-3x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-3x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-4x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-4x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-4x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-5x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-5x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-5x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-6x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-6x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-6x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-7x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-7x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-7x32c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-8x8c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-8x16c8-minmax-neoni8mm.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-8x32c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-1x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-1x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-1x32c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-2x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-2x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-2x32c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-3x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-3x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-3x32c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-4x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-4x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-4x32c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-5x8c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-5x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-5x32c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-6x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-6x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-6x32c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-7x8c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-7x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-7x32c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-8x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-8x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-8x32c8-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-1x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-1x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-1x32c8-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-2x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-2x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-2x32c8-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-3x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-3x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-3x32-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-4x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-4x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-4x32-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-5x8c8-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-5x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-5x32-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-6x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-6x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-6x32-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-7x8c8-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-7x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-7x32-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-8x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-8x16c8-minmax-neoni8mm.c
+  src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-8x32-minmax-neoni8mm.c
   src/qd8-f32-qc8w-igemm/gen/qd8-f32-qc8w-igemm-1x8c8-minmax-neoni8mm.c
   src/qd8-f32-qc8w-igemm/gen/qd8-f32-qc8w-igemm-1x16c8-minmax-neoni8mm.c
   src/qd8-f32-qc8w-igemm/gen/qd8-f32-qc8w-igemm-2x8c8-minmax-neoni8mm.c
@@ -5049,7 +5230,15 @@ SET(ALL_RVV_MICROKERNEL_SRCS
   src/f32-vunary/gen/f32-vsqr-rvv-u1v.c
   src/f32-vunary/gen/f32-vsqr-rvv-u2v.c
   src/f32-vunary/gen/f32-vsqr-rvv-u4v.c
-  src/f32-vunary/gen/f32-vsqr-rvv-u8v.c)
+  src/f32-vunary/gen/f32-vsqr-rvv-u8v.c
+  src/qs8-vmul/gen/qs8-vmul-minmax-f32-rvv-u1v.c
+  src/qs8-vmul/gen/qs8-vmul-minmax-f32-rvv-u2v.c
+  src/qs8-vmulc/gen/qs8-vmulc-minmax-f32-rvv-u1v.c
+  src/qs8-vmulc/gen/qs8-vmulc-minmax-f32-rvv-u2v.c
+  src/qu8-vmul/gen/qu8-vmul-minmax-f32-rvv-u1v.c
+  src/qu8-vmul/gen/qu8-vmul-minmax-f32-rvv-u2v.c
+  src/qu8-vmulc/gen/qu8-vmulc-minmax-f32-rvv-u1v.c
+  src/qu8-vmulc/gen/qu8-vmulc-minmax-f32-rvv-u2v.c)
 
 SET(ALL_SCALAR_MICROKERNEL_SRCS
   src/cs16-bfly4/cs16-bfly4-samples1-scalar.c
@@ -5068,6 +5257,29 @@ SET(ALL_SCALAR_MICROKERNEL_SRCS
   src/f16-f32-vcvt/gen/f16-f32-vcvt-scalar-u2.c
   src/f16-f32-vcvt/gen/f16-f32-vcvt-scalar-u3.c
   src/f16-f32-vcvt/gen/f16-f32-vcvt-scalar-u4.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-scalar-fmagic-u1.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-scalar-fmagic-u2.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-scalar-fmagic-u3.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-scalar-fmagic-u4.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-scalar-imagic-u1.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-scalar-imagic-u2.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-scalar-imagic-u3.c
+  src/f16-qs8-vcvt/gen/f16-qs8-vcvt-scalar-imagic-u4.c
+  src/f16-rminmax/gen/f16-rmax-scalar-u1.c
+  src/f16-rminmax/gen/f16-rmax-scalar-u2-acc2.c
+  src/f16-rminmax/gen/f16-rmax-scalar-u3-acc3.c
+  src/f16-rminmax/gen/f16-rmax-scalar-u4-acc2.c
+  src/f16-rminmax/gen/f16-rmax-scalar-u4-acc4.c
+  src/f16-rminmax/gen/f16-rmin-scalar-u1.c
+  src/f16-rminmax/gen/f16-rmin-scalar-u2-acc2.c
+  src/f16-rminmax/gen/f16-rmin-scalar-u3-acc3.c
+  src/f16-rminmax/gen/f16-rmin-scalar-u4-acc2.c
+  src/f16-rminmax/gen/f16-rmin-scalar-u4-acc4.c
+  src/f16-rminmax/gen/f16-rminmax-scalar-u1.c
+  src/f16-rminmax/gen/f16-rminmax-scalar-u2-acc2.c
+  src/f16-rminmax/gen/f16-rminmax-scalar-u3-acc3.c
+  src/f16-rminmax/gen/f16-rminmax-scalar-u4-acc2.c
+  src/f16-rminmax/gen/f16-rminmax-scalar-u4-acc4.c
   src/f32-argmaxpool/f32-argmaxpool-4x-scalar-c1.c
   src/f32-argmaxpool/f32-argmaxpool-9p8x-scalar-c1.c
   src/f32-argmaxpool/f32-argmaxpool-9x-scalar-c1.c
@@ -5914,9 +6126,6 @@ SET(ALL_SCALAR_MICROKERNEL_SRCS
   src/qs8-vhswish/gen/qs8-vhswish-scalar-u1.c
   src/qs8-vhswish/gen/qs8-vhswish-scalar-u2.c
   src/qs8-vhswish/gen/qs8-vhswish-scalar-u4.c
-  src/qs8-vhswish/gen/qs8-vhswish-scalar-x1.c
-  src/qs8-vhswish/gen/qs8-vhswish-scalar-x2.c
-  src/qs8-vhswish/gen/qs8-vhswish-scalar-x4.c
   src/qs8-vlrelu/gen/qs8-vlrelu-scalar-andxor-u1.c
   src/qs8-vlrelu/gen/qs8-vlrelu-scalar-andxor-u2.c
   src/qs8-vlrelu/gen/qs8-vlrelu-scalar-andxor-u4.c
@@ -6083,9 +6292,9 @@ SET(ALL_SCALAR_MICROKERNEL_SRCS
   src/qu8-vcvt/gen/qu8-vcvt-scalar-u1.c
   src/qu8-vcvt/gen/qu8-vcvt-scalar-u2.c
   src/qu8-vcvt/gen/qu8-vcvt-scalar-u4.c
-  src/qu8-vhswish/gen/qu8-vhswish-scalar-x1.c
-  src/qu8-vhswish/gen/qu8-vhswish-scalar-x2.c
-  src/qu8-vhswish/gen/qu8-vhswish-scalar-x4.c
+  src/qu8-vhswish/gen/qu8-vhswish-scalar-u1.c
+  src/qu8-vhswish/gen/qu8-vhswish-scalar-u2.c
+  src/qu8-vhswish/gen/qu8-vhswish-scalar-u4.c
   src/qu8-vlrelu/gen/qu8-vlrelu-scalar-andxor-u1.c
   src/qu8-vlrelu/gen/qu8-vlrelu-scalar-andxor-u2.c
   src/qu8-vlrelu/gen/qu8-vlrelu-scalar-andxor-u4.c
@@ -9327,6 +9536,9 @@ SET(ALL_WASMSIMD_MICROKERNEL_SRCS
   src/qs8-vcvt/gen/qs8-vcvt-wasmsimd-u8.c
   src/qs8-vcvt/gen/qs8-vcvt-wasmsimd-u16.c
   src/qs8-vcvt/gen/qs8-vcvt-wasmsimd-u32.c
+  src/qs8-vhswish/gen/qs8-vhswish-wasmsimd-u8.c
+  src/qs8-vhswish/gen/qs8-vhswish-wasmsimd-u16.c
+  src/qs8-vhswish/gen/qs8-vhswish-wasmsimd-u32.c
   src/qs8-vlrelu/gen/qs8-vlrelu-wasmsimd-arm-u16.c
   src/qs8-vlrelu/gen/qs8-vlrelu-wasmsimd-arm-u32.c
   src/qs8-vlrelu/gen/qs8-vlrelu-wasmsimd-x86-u8.c
@@ -9420,6 +9632,9 @@ SET(ALL_WASMSIMD_MICROKERNEL_SRCS
   src/qu8-vcvt/gen/qu8-vcvt-wasmsimd-u8.c
   src/qu8-vcvt/gen/qu8-vcvt-wasmsimd-u16.c
   src/qu8-vcvt/gen/qu8-vcvt-wasmsimd-u32.c
+  src/qu8-vhswish/gen/qu8-vhswish-wasmsimd-u8.c
+  src/qu8-vhswish/gen/qu8-vhswish-wasmsimd-u16.c
+  src/qu8-vhswish/gen/qu8-vhswish-wasmsimd-u32.c
   src/qu8-vlrelu/gen/qu8-vlrelu-wasmsimd-arm-u16.c
   src/qu8-vlrelu/gen/qu8-vlrelu-wasmsimd-arm-u32.c
   src/qu8-vlrelu/gen/qu8-vlrelu-wasmsimd-x86-u8.c

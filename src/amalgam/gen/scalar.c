@@ -3,6 +3,7 @@
 // This source code is licensed under the BSD-style license found in the
 // LICENSE file in the root directory of this source tree.
 
+#include <fp16/fp16.h>
 #include <assert.h>
 #include <fxdiv.h>
 #include <math.h>
@@ -157,6 +158,142 @@ void xnn_f16_f32_vcvt_ukernel__scalar_u4(
       batch -= sizeof(uint16_t);
     } while (batch != 0);
   }
+}
+
+void xnn_f16_qs8_vcvt_ukernel__scalar_imagic_u4(
+    size_t batch,
+    const void* input,
+    int8_t* output,
+    const union xnn_f16_qs8_cvt_params params[restrict XNN_MIN_ELEMENTS(1)])
+{
+  assert(batch != 0);
+  assert(batch % sizeof(uint16_t) == 0);
+  assert(input != NULL);
+  assert(output != NULL);
+
+  const uint16_t* i = (const uint16_t*) input;
+  const float vscale = params->scalar_imagic.scale;
+  const float vmagic_bias = params->scalar_imagic.magic_bias;
+  const int32_t vmagic_min = params->scalar_imagic.magic_min;
+  const int32_t vmagic_max = params->scalar_imagic.magic_max;
+  const int32_t vmagic_bias_less_zero_point = params->scalar_imagic.magic_bias_less_zero_point;
+
+  for (; batch >= 4 * sizeof(uint16_t); batch -= 4 * sizeof(uint16_t)) {
+    float vx0 = fp16_ieee_to_fp32_value(i[0]);
+    float vx1 = fp16_ieee_to_fp32_value(i[1]);
+    float vx2 = fp16_ieee_to_fp32_value(i[2]);
+    float vx3 = fp16_ieee_to_fp32_value(i[3]);
+    i += 4;
+
+    vx0 *= vscale;
+    vx1 *= vscale;
+    vx2 *= vscale;
+    vx3 *= vscale;
+
+    vx0 += vmagic_bias;
+    vx1 += vmagic_bias;
+    vx2 += vmagic_bias;
+    vx3 += vmagic_bias;
+
+    int32_t vy0 = (int32_t) float_as_uint32(vx0);
+    int32_t vy1 = (int32_t) float_as_uint32(vx1);
+    int32_t vy2 = (int32_t) float_as_uint32(vx2);
+    int32_t vy3 = (int32_t) float_as_uint32(vx3);
+
+    vy0 = math_max_s32(vy0, vmagic_min);
+    vy1 = math_max_s32(vy1, vmagic_min);
+    vy2 = math_max_s32(vy2, vmagic_min);
+    vy3 = math_max_s32(vy3, vmagic_min);
+
+    vy0 = math_min_s32(vy0, vmagic_max);
+    vy1 = math_min_s32(vy1, vmagic_max);
+    vy2 = math_min_s32(vy2, vmagic_max);
+    vy3 = math_min_s32(vy3, vmagic_max);
+
+    vy0 -= vmagic_bias_less_zero_point;
+    vy1 -= vmagic_bias_less_zero_point;
+    vy2 -= vmagic_bias_less_zero_point;
+    vy3 -= vmagic_bias_less_zero_point;
+
+    output[0] = (int8_t) vy0;
+    output[1] = (int8_t) vy1;
+    output[2] = (int8_t) vy2;
+    output[3] = (int8_t) vy3;
+    output += 4;
+  }
+  if XNN_UNLIKELY(batch != 0) {
+    do {
+      float vx = fp16_ieee_to_fp32_value(*i++);
+      vx *= vscale;
+      vx += vmagic_bias;
+
+      int32_t vy = (int32_t) float_as_uint32(vx);
+      vy = math_max_s32(vy, vmagic_min);
+      vy = math_min_s32(vy, vmagic_max);
+      vy -= vmagic_bias_less_zero_point;
+
+      *output++ = (int8_t) vy;
+
+      batch -= sizeof(uint16_t);
+    } while (batch != 0);
+  }
+}
+
+void xnn_f16_rminmax_ukernel__scalar_u4_acc4(
+    size_t batch,
+    const void* input,
+    void* output,
+    const union xnn_f16_default_params params[restrict XNN_MIN_ELEMENTS(1)])
+{
+  assert(batch != 0);
+  assert(batch % sizeof(uint16_t) == 0);
+  assert(input != NULL);
+  assert(output != NULL);
+
+  const uint16_t* i = (const uint16_t*) input;
+  uint16_t* o = (uint16_t*) output;
+
+  float vmin0 = fp16_ieee_to_fp32_value(*i);
+  float vmax0 = fp16_ieee_to_fp32_value(*i);
+  float vmin1 = vmin0;
+  float vmax1 = vmax0;
+  float vmin2 = vmin0;
+  float vmax2 = vmax0;
+  float vmin3 = vmin0;
+  float vmax3 = vmax0;
+  for (; batch >= 4 * sizeof(uint16_t); batch -= 4 * sizeof(uint16_t)) {
+    const float vt0 = fp16_ieee_to_fp32_value(i[0]);
+    const float vt1 = fp16_ieee_to_fp32_value(i[1]);
+    const float vt2 = fp16_ieee_to_fp32_value(i[2]);
+    const float vt3 = fp16_ieee_to_fp32_value(i[3]);
+    i += 4;
+
+    vmin0 = math_min_f32(vmin0, vt0);
+    vmax0 = math_max_f32(vmax0, vt0);
+    vmin1 = math_min_f32(vmin1, vt1);
+    vmax1 = math_max_f32(vmax1, vt1);
+    vmin2 = math_min_f32(vmin2, vt2);
+    vmax2 = math_max_f32(vmax2, vt2);
+    vmin3 = math_min_f32(vmin3, vt3);
+    vmax3 = math_max_f32(vmax3, vt3);
+  }
+  vmin0 = math_min_f32(vmin0, vmin1);
+  vmax0 = math_max_f32(vmax0, vmax1);
+  vmin2 = math_min_f32(vmin2, vmin3);
+  vmax2 = math_max_f32(vmax2, vmax3);
+  vmin0 = math_min_f32(vmin0, vmin2);
+  vmax0 = math_max_f32(vmax0, vmax2);
+
+  if XNN_UNLIKELY(batch != 0) {
+    do {
+      const float vt = fp16_ieee_to_fp32_value(*i++);
+      vmin0 = math_min_f32(vmin0, vt);
+      vmax0 = math_max_f32(vmax0, vt);
+      batch -= sizeof(uint16_t);
+    } while (batch != 0);
+  }
+  o[0] = fp16_ieee_from_fp32_value(vmin0);
+  o[1] = fp16_ieee_from_fp32_value(vmax0);
 }
 
 void xnn_f32_argmaxpool_ukernel_4x__scalar_c1(
@@ -5727,35 +5864,35 @@ void xnn_f32_gemm_minmax_ukernel_2x4__scalar(
     vacc13 = math_min_f32(vacc13, vmax);
 
     if XNN_LIKELY(nc >= 4) {
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
 
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
       }
       if (nc & 1) {
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
       }
 
       nc = 0;
@@ -5837,35 +5974,35 @@ void xnn_f32_gemm_relu_ukernel_2x4__scalar(
     vacc13 = math_max_f32(vacc13, 0.0f);
 
     if XNN_LIKELY(nc >= 4) {
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
 
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
       }
       if (nc & 1) {
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
       }
 
       nc = 0;
@@ -5939,35 +6076,35 @@ void xnn_f32_gemm_ukernel_2x4__scalar(
 
 
     if XNN_LIKELY(nc >= 4) {
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
 
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
       }
       if (nc & 1) {
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
       }
 
       nc = 0;
@@ -6072,31 +6209,31 @@ void xnn_f32_gemm_minmax_ukernel_4x2__scalar(
     vacc31 = math_min_f32(vacc31, vmax);
 
     if XNN_LIKELY(nc >= 2) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 2;
     } else {
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -6182,31 +6319,31 @@ void xnn_f32_gemm_ukernel_4x2__scalar(
 
 
     if XNN_LIKELY(nc >= 2) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 2;
     } else {
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -6345,57 +6482,57 @@ void xnn_f32_gemm_minmax_ukernel_4x4__scalar(
     vacc33 = math_min_f32(vacc33, vmax);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3[2] = vacc32;
-      c3[3] = vacc33;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2[2] = vacc22;
-      c2[3] = vacc23;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2[2] = vacc22;
+      c2[3] = vacc23;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3[2] = vacc32;
+      c3[3] = vacc33;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vacc30;
-        c3[1] = vacc31;
-        vacc30 = vacc32;
-        c3 += 2;
-        c2[0] = vacc20;
-        c2[1] = vacc21;
-        vacc20 = vacc22;
-        c2 += 2;
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
+        c2[0] = vacc20;
+        c2[1] = vacc21;
+        vacc20 = vacc22;
+        c2 += 2;
+        c3[0] = vacc30;
+        c3[1] = vacc31;
+        vacc30 = vacc32;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -6515,57 +6652,57 @@ void xnn_f32_gemm_relu_ukernel_4x4__scalar(
     vacc33 = math_max_f32(vacc33, 0.0f);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3[2] = vacc32;
-      c3[3] = vacc33;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2[2] = vacc22;
-      c2[3] = vacc23;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2[2] = vacc22;
+      c2[3] = vacc23;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3[2] = vacc32;
+      c3[3] = vacc33;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vacc30;
-        c3[1] = vacc31;
-        vacc30 = vacc32;
-        c3 += 2;
-        c2[0] = vacc20;
-        c2[1] = vacc21;
-        vacc20 = vacc22;
-        c2 += 2;
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
+        c2[0] = vacc20;
+        c2[1] = vacc21;
+        vacc20 = vacc22;
+        c2 += 2;
+        c3[0] = vacc30;
+        c3[1] = vacc31;
+        vacc30 = vacc32;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -6669,57 +6806,57 @@ void xnn_f32_gemm_ukernel_4x4__scalar(
 
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3[2] = vacc32;
-      c3[3] = vacc33;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2[2] = vacc22;
-      c2[3] = vacc23;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2[2] = vacc22;
+      c2[3] = vacc23;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3[2] = vacc32;
+      c3[3] = vacc33;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vacc30;
-        c3[1] = vacc31;
-        vacc30 = vacc32;
-        c3 += 2;
-        c2[0] = vacc20;
-        c2[1] = vacc21;
-        vacc20 = vacc22;
-        c2 += 2;
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
+        c2[0] = vacc20;
+        c2[1] = vacc21;
+        vacc20 = vacc22;
+        c2 += 2;
+        c3[0] = vacc30;
+        c3[1] = vacc31;
+        vacc30 = vacc32;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -9430,57 +9567,57 @@ void xnn_f32_qc4w_gemm_minmax_ukernel_4x4__scalar(
     vacc33 = math_min_f32(vacc33, vmax);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3[2] = vacc32;
-      c3[3] = vacc33;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2[2] = vacc22;
-      c2[3] = vacc23;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2[2] = vacc22;
+      c2[3] = vacc23;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3[2] = vacc32;
+      c3[3] = vacc33;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vacc30;
-        c3[1] = vacc31;
-        vacc30 = vacc32;
-        c3 += 2;
-        c2[0] = vacc20;
-        c2[1] = vacc21;
-        vacc20 = vacc22;
-        c2 += 2;
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
+        c2[0] = vacc20;
+        c2[1] = vacc21;
+        vacc20 = vacc22;
+        c2 += 2;
+        c3[0] = vacc30;
+        c3[1] = vacc31;
+        vacc30 = vacc32;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -9736,57 +9873,57 @@ void xnn_f32_qc8w_gemm_minmax_ukernel_4x4__scalar(
     vacc33 = math_min_f32(vacc33, vmax);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3[2] = vacc32;
-      c3[3] = vacc33;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2[2] = vacc22;
-      c2[3] = vacc23;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2[2] = vacc22;
+      c2[3] = vacc23;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3[2] = vacc32;
+      c3[3] = vacc33;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vacc30;
-        c3[1] = vacc31;
-        vacc30 = vacc32;
-        c3 += 2;
-        c2[0] = vacc20;
-        c2[1] = vacc21;
-        vacc20 = vacc22;
-        c2 += 2;
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
+        c2[0] = vacc20;
+        c2[1] = vacc21;
+        vacc20 = vacc22;
+        c2 += 2;
+        c3[0] = vacc30;
+        c3[1] = vacc31;
+        vacc30 = vacc32;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -10335,16 +10472,18 @@ void xnn_f32_rmax_ukernel__scalar_u4_acc4(
   assert(input != NULL);
   assert(output != NULL);
 
-  float vmax0 = *input;
+  const float* i = input;
+
+  float vmax0 = *i;
   float vmax1 = vmax0;
   float vmax2 = vmax0;
   float vmax3 = vmax0;
   for (; batch >= 4 * sizeof(float); batch -= 4 * sizeof(float)) {
-    const float vt0 = input[0];
-    const float vt1 = input[1];
-    const float vt2 = input[2];
-    const float vt3 = input[3];
-    input += 4;
+    const float vt0 = i[0];
+    const float vt1 = i[1];
+    const float vt2 = i[2];
+    const float vt3 = i[3];
+    i += 4;
 
     vmax0 = math_max_f32(vmax0, vt0);
     vmax1 = math_max_f32(vmax1, vt1);
@@ -10357,7 +10496,7 @@ void xnn_f32_rmax_ukernel__scalar_u4_acc4(
 
   if XNN_UNLIKELY(batch != 0) {
     do {
-      const float vt = *input++;
+      const float vt = *i++;
       vmax0 = math_max_f32(vmax0, vt);
       batch -= sizeof(float);
     } while (batch != 0);
@@ -10376,8 +10515,10 @@ void xnn_f32_rminmax_ukernel__scalar_u4_acc4(
   assert(input != NULL);
   assert(output != NULL);
 
-  float vmin0 = *input;
-  float vmax0 = *input;
+  const float* i = input;
+
+  float vmin0 = *i;
+  float vmax0 = *i;
   float vmin1 = vmin0;
   float vmax1 = vmax0;
   float vmin2 = vmin0;
@@ -10385,11 +10526,11 @@ void xnn_f32_rminmax_ukernel__scalar_u4_acc4(
   float vmin3 = vmin0;
   float vmax3 = vmax0;
   for (; batch >= 4 * sizeof(float); batch -= 4 * sizeof(float)) {
-    const float vt0 = input[0];
-    const float vt1 = input[1];
-    const float vt2 = input[2];
-    const float vt3 = input[3];
-    input += 4;
+    const float vt0 = i[0];
+    const float vt1 = i[1];
+    const float vt2 = i[2];
+    const float vt3 = i[3];
+    i += 4;
 
     vmin0 = math_min_f32(vmin0, vt0);
     vmax0 = math_max_f32(vmax0, vt0);
@@ -10409,7 +10550,7 @@ void xnn_f32_rminmax_ukernel__scalar_u4_acc4(
 
   if XNN_UNLIKELY(batch != 0) {
     do {
-      const float vt = *input++;
+      const float vt = *i++;
       vmin0 = math_min_f32(vmin0, vt);
       vmax0 = math_max_f32(vmax0, vt);
       batch -= sizeof(float);
@@ -14656,22 +14797,22 @@ void xnn_qd8_f32_qc4w_gemm_minmax_ukernel_4x4__scalar(
     vout3x3 = math_min_f32(vout3x3, voutput_max);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vout3x0;
-      c3[1] = vout3x1;
-      c3[2] = vout3x2;
-      c3[3] = vout3x3;
-      c2[0] = vout2x0;
-      c2[1] = vout2x1;
-      c2[2] = vout2x2;
-      c2[3] = vout2x3;
-      c1[0] = vout1x0;
-      c1[1] = vout1x1;
-      c1[2] = vout1x2;
-      c1[3] = vout1x3;
       c0[0] = vout0x0;
       c0[1] = vout0x1;
       c0[2] = vout0x2;
       c0[3] = vout0x3;
+      c1[0] = vout1x0;
+      c1[1] = vout1x1;
+      c1[2] = vout1x2;
+      c1[3] = vout1x3;
+      c2[0] = vout2x0;
+      c2[1] = vout2x1;
+      c2[2] = vout2x2;
+      c2[3] = vout2x3;
+      c3[0] = vout3x0;
+      c3[1] = vout3x1;
+      c3[2] = vout3x2;
+      c3[3] = vout3x3;
 
       a0 = (const int8_t*) ((uintptr_t) a0 - kc);
       a1 = (const int8_t*) ((uintptr_t) a1 - kc);
@@ -14686,28 +14827,28 @@ void xnn_qd8_f32_qc4w_gemm_minmax_ukernel_4x4__scalar(
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vout3x0;
-        c3[1] = vout3x1;
-        vout3x0 = vout3x2;
-        c3 += 2;
-        c2[0] = vout2x0;
-        c2[1] = vout2x1;
-        vout2x0 = vout2x2;
-        c2 += 2;
-        c1[0] = vout1x0;
-        c1[1] = vout1x1;
-        vout1x0 = vout1x2;
-        c1 += 2;
         c0[0] = vout0x0;
         c0[1] = vout0x1;
         vout0x0 = vout0x2;
         c0 += 2;
+        c1[0] = vout1x0;
+        c1[1] = vout1x1;
+        vout1x0 = vout1x2;
+        c1 += 2;
+        c2[0] = vout2x0;
+        c2[1] = vout2x1;
+        vout2x0 = vout2x2;
+        c2 += 2;
+        c3[0] = vout3x0;
+        c3[1] = vout3x1;
+        vout3x0 = vout3x2;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vout3x0;
-        c2[0] = vout2x0;
-        c1[0] = vout1x0;
         c0[0] = vout0x0;
+        c1[0] = vout1x0;
+        c2[0] = vout2x0;
+        c3[0] = vout3x0;
       }
 
       nc = 0;
@@ -15021,10 +15162,10 @@ void xnn_qd8_f32_qc8w_gemm_minmax_ukernel_2x2__scalar(
     vout1x1 = math_min_f32(vout1x1, voutput_max);
 
     if XNN_LIKELY(nc >= 2) {
-      c1[0] = vout1x0;
-      c1[1] = vout1x1;
       c0[0] = vout0x0;
       c0[1] = vout0x1;
+      c1[0] = vout1x0;
+      c1[1] = vout1x1;
 
       a0 = (const int8_t*) ((uintptr_t) a0 - kc);
       a1 = (const int8_t*) ((uintptr_t) a1 - kc);
@@ -15035,8 +15176,8 @@ void xnn_qd8_f32_qc8w_gemm_minmax_ukernel_2x2__scalar(
       nc -= 2;
     } else {
       if (nc & 1) {
-        c1[0] = vout1x0;
         c0[0] = vout0x0;
+        c1[0] = vout1x0;
       }
 
       nc = 0;
@@ -15262,22 +15403,22 @@ void xnn_qd8_f32_qc8w_gemm_minmax_ukernel_4x4__scalar(
     vout3x3 = math_min_f32(vout3x3, voutput_max);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vout3x0;
-      c3[1] = vout3x1;
-      c3[2] = vout3x2;
-      c3[3] = vout3x3;
-      c2[0] = vout2x0;
-      c2[1] = vout2x1;
-      c2[2] = vout2x2;
-      c2[3] = vout2x3;
-      c1[0] = vout1x0;
-      c1[1] = vout1x1;
-      c1[2] = vout1x2;
-      c1[3] = vout1x3;
       c0[0] = vout0x0;
       c0[1] = vout0x1;
       c0[2] = vout0x2;
       c0[3] = vout0x3;
+      c1[0] = vout1x0;
+      c1[1] = vout1x1;
+      c1[2] = vout1x2;
+      c1[3] = vout1x3;
+      c2[0] = vout2x0;
+      c2[1] = vout2x1;
+      c2[2] = vout2x2;
+      c2[3] = vout2x3;
+      c3[0] = vout3x0;
+      c3[1] = vout3x1;
+      c3[2] = vout3x2;
+      c3[3] = vout3x3;
 
       a0 = (const int8_t*) ((uintptr_t) a0 - kc);
       a1 = (const int8_t*) ((uintptr_t) a1 - kc);
@@ -15292,28 +15433,28 @@ void xnn_qd8_f32_qc8w_gemm_minmax_ukernel_4x4__scalar(
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vout3x0;
-        c3[1] = vout3x1;
-        vout3x0 = vout3x2;
-        c3 += 2;
-        c2[0] = vout2x0;
-        c2[1] = vout2x1;
-        vout2x0 = vout2x2;
-        c2 += 2;
-        c1[0] = vout1x0;
-        c1[1] = vout1x1;
-        vout1x0 = vout1x2;
-        c1 += 2;
         c0[0] = vout0x0;
         c0[1] = vout0x1;
         vout0x0 = vout0x2;
         c0 += 2;
+        c1[0] = vout1x0;
+        c1[1] = vout1x1;
+        vout1x0 = vout1x2;
+        c1 += 2;
+        c2[0] = vout2x0;
+        c2[1] = vout2x1;
+        vout2x0 = vout2x2;
+        c2 += 2;
+        c3[0] = vout3x0;
+        c3[1] = vout3x1;
+        vout3x0 = vout3x2;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vout3x0;
-        c2[0] = vout2x0;
-        c1[0] = vout1x0;
         c0[0] = vout0x0;
+        c1[0] = vout1x0;
+        c2[0] = vout2x0;
+        c3[0] = vout3x0;
       }
 
       nc = 0;

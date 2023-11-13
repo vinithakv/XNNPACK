@@ -1606,31 +1606,31 @@ void xnn_f32_gemm_minmax_ukernel_4x2__wasm(
     vacc31 = __builtin_wasm_min_f32(vacc31, vmax);
 
     if XNN_LIKELY(nc >= 2) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 2;
     } else {
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -1769,57 +1769,57 @@ void xnn_f32_gemm_minmax_ukernel_4x4__wasm(
     vacc33 = __builtin_wasm_min_f32(vacc33, vmax);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3[2] = vacc32;
-      c3[3] = vacc33;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2[2] = vacc22;
-      c2[3] = vacc23;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2[2] = vacc22;
+      c2[3] = vacc23;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3[2] = vacc32;
+      c3[3] = vacc33;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vacc30;
-        c3[1] = vacc31;
-        vacc30 = vacc32;
-        c3 += 2;
-        c2[0] = vacc20;
-        c2[1] = vacc21;
-        vacc20 = vacc22;
-        c2 += 2;
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
+        c2[0] = vacc20;
+        c2[1] = vacc21;
+        vacc20 = vacc22;
+        c2 += 2;
+        c3[0] = vacc30;
+        c3[1] = vacc31;
+        vacc30 = vacc32;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -1939,57 +1939,57 @@ void xnn_f32_gemm_relu_ukernel_4x4__wasm(
     vacc33 = __builtin_wasm_max_f32(vacc33, 0.0f);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3[2] = vacc32;
-      c3[3] = vacc33;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2[2] = vacc22;
-      c2[3] = vacc23;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2[2] = vacc22;
+      c2[3] = vacc23;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3[2] = vacc32;
+      c3[3] = vacc33;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vacc30;
-        c3[1] = vacc31;
-        vacc30 = vacc32;
-        c3 += 2;
-        c2[0] = vacc20;
-        c2[1] = vacc21;
-        vacc20 = vacc22;
-        c2 += 2;
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
+        c2[0] = vacc20;
+        c2[1] = vacc21;
+        vacc20 = vacc22;
+        c2 += 2;
+        c3[0] = vacc30;
+        c3[1] = vacc31;
+        vacc30 = vacc32;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -3741,57 +3741,57 @@ void xnn_f32_qc4w_gemm_minmax_ukernel_4x4__wasm(
     vacc33 = __builtin_wasm_min_f32(vacc33, vmax);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3[2] = vacc32;
-      c3[3] = vacc33;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2[2] = vacc22;
-      c2[3] = vacc23;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2[2] = vacc22;
+      c2[3] = vacc23;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3[2] = vacc32;
+      c3[3] = vacc33;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vacc30;
-        c3[1] = vacc31;
-        vacc30 = vacc32;
-        c3 += 2;
-        c2[0] = vacc20;
-        c2[1] = vacc21;
-        vacc20 = vacc22;
-        c2 += 2;
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
+        c2[0] = vacc20;
+        c2[1] = vacc21;
+        vacc20 = vacc22;
+        c2 += 2;
+        c3[0] = vacc30;
+        c3[1] = vacc31;
+        vacc30 = vacc32;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -4047,57 +4047,57 @@ void xnn_f32_qc8w_gemm_minmax_ukernel_4x4__wasm(
     vacc33 = __builtin_wasm_min_f32(vacc33, vmax);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vacc30;
-      c3[1] = vacc31;
-      c3[2] = vacc32;
-      c3[3] = vacc33;
-      c3 = (float*) ((uintptr_t) c3 + cn_stride);
-      c2[0] = vacc20;
-      c2[1] = vacc21;
-      c2[2] = vacc22;
-      c2[3] = vacc23;
-      c2 = (float*) ((uintptr_t) c2 + cn_stride);
-      c1[0] = vacc10;
-      c1[1] = vacc11;
-      c1[2] = vacc12;
-      c1[3] = vacc13;
-      c1 = (float*) ((uintptr_t) c1 + cn_stride);
       c0[0] = vacc00;
       c0[1] = vacc01;
       c0[2] = vacc02;
       c0[3] = vacc03;
       c0 = (float*) ((uintptr_t) c0 + cn_stride);
+      c1[0] = vacc10;
+      c1[1] = vacc11;
+      c1[2] = vacc12;
+      c1[3] = vacc13;
+      c1 = (float*) ((uintptr_t) c1 + cn_stride);
+      c2[0] = vacc20;
+      c2[1] = vacc21;
+      c2[2] = vacc22;
+      c2[3] = vacc23;
+      c2 = (float*) ((uintptr_t) c2 + cn_stride);
+      c3[0] = vacc30;
+      c3[1] = vacc31;
+      c3[2] = vacc32;
+      c3[3] = vacc33;
+      c3 = (float*) ((uintptr_t) c3 + cn_stride);
 
-      a3 = (const void*) ((uintptr_t) a3 - kc);
-      a2 = (const void*) ((uintptr_t) a2 - kc);
-      a1 = (const void*) ((uintptr_t) a1 - kc);
       a0 = (const void*) ((uintptr_t) a0 - kc);
+      a1 = (const void*) ((uintptr_t) a1 - kc);
+      a2 = (const void*) ((uintptr_t) a2 - kc);
+      a3 = (const void*) ((uintptr_t) a3 - kc);
 
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vacc30;
-        c3[1] = vacc31;
-        vacc30 = vacc32;
-        c3 += 2;
-        c2[0] = vacc20;
-        c2[1] = vacc21;
-        vacc20 = vacc22;
-        c2 += 2;
-        c1[0] = vacc10;
-        c1[1] = vacc11;
-        vacc10 = vacc12;
-        c1 += 2;
         c0[0] = vacc00;
         c0[1] = vacc01;
         vacc00 = vacc02;
         c0 += 2;
+        c1[0] = vacc10;
+        c1[1] = vacc11;
+        vacc10 = vacc12;
+        c1 += 2;
+        c2[0] = vacc20;
+        c2[1] = vacc21;
+        vacc20 = vacc22;
+        c2 += 2;
+        c3[0] = vacc30;
+        c3[1] = vacc31;
+        vacc30 = vacc32;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vacc30;
-        c2[0] = vacc20;
-        c1[0] = vacc10;
         c0[0] = vacc00;
+        c1[0] = vacc10;
+        c2[0] = vacc20;
+        c3[0] = vacc30;
       }
 
       nc = 0;
@@ -4116,6 +4116,7 @@ void xnn_f32_qu8_vcvt_ukernel__wasm_fmagic_u4(
   assert(input != NULL);
   assert(output != NULL);
 
+  const float* i = input;
   const float vscale = params->scalar_fmagic.scale;
   const float voutput_min_less_zero_point = params->scalar_fmagic.output_min_less_zero_point;
   const float voutput_max_less_zero_point = params->scalar_fmagic.output_max_less_zero_point;
@@ -4123,11 +4124,11 @@ void xnn_f32_qu8_vcvt_ukernel__wasm_fmagic_u4(
   const int32_t vmagic_bias_less_zero_point = params->scalar_fmagic.magic_bias_less_zero_point;
 
   for (; batch >= 4 * sizeof(float); batch -= 4 * sizeof(float)) {
-    float vx0 = input[0];
-    float vx1 = input[1];
-    float vx2 = input[2];
-    float vx3 = input[3];
-    input += 4;
+    float vx0 = i[0];
+    float vx1 = i[1];
+    float vx2 = i[2];
+    float vx3 = i[3];
+    i += 4;
 
     vx0 *= vscale;
     vx1 *= vscale;
@@ -4167,7 +4168,7 @@ void xnn_f32_qu8_vcvt_ukernel__wasm_fmagic_u4(
   }
   if XNN_UNLIKELY(batch != 0) {
     do {
-      float vx = *input++;
+      float vx = *i++;
       vx *= vscale;
       vx = __builtin_wasm_max_f32(vx, voutput_min_less_zero_point);
       vx = __builtin_wasm_min_f32(vx, voutput_max_less_zero_point);
@@ -4194,8 +4195,10 @@ void xnn_f32_rminmax_ukernel__wasm_u4_acc4(
   assert(input != NULL);
   assert(output != NULL);
 
-  float vmin0 = *input;
-  float vmax0 = *input;
+  const float* i = input;
+
+  float vmin0 = *i;
+  float vmax0 = *i;
   float vmin1 = vmin0;
   float vmax1 = vmax0;
   float vmin2 = vmin0;
@@ -4203,11 +4206,11 @@ void xnn_f32_rminmax_ukernel__wasm_u4_acc4(
   float vmin3 = vmin0;
   float vmax3 = vmax0;
   for (; batch >= 4 * sizeof(float); batch -= 4 * sizeof(float)) {
-    const float vt0 = input[0];
-    const float vt1 = input[1];
-    const float vt2 = input[2];
-    const float vt3 = input[3];
-    input += 4;
+    const float vt0 = i[0];
+    const float vt1 = i[1];
+    const float vt2 = i[2];
+    const float vt3 = i[3];
+    i += 4;
 
     vmin0 = __builtin_wasm_min_f32(vmin0, vt0);
     vmax0 = __builtin_wasm_max_f32(vmax0, vt0);
@@ -4227,7 +4230,7 @@ void xnn_f32_rminmax_ukernel__wasm_u4_acc4(
 
   if XNN_UNLIKELY(batch != 0) {
     do {
-      const float vt = *input++;
+      const float vt = *i++;
       vmin0 = __builtin_wasm_min_f32(vmin0, vt);
       vmax0 = __builtin_wasm_max_f32(vmax0, vt);
       batch -= sizeof(float);
@@ -6281,22 +6284,22 @@ void xnn_qd8_f32_qc4w_gemm_minmax_ukernel_4x4__wasm(
     vout3x3 = __builtin_wasm_min_f32(vout3x3, voutput_max);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vout3x0;
-      c3[1] = vout3x1;
-      c3[2] = vout3x2;
-      c3[3] = vout3x3;
-      c2[0] = vout2x0;
-      c2[1] = vout2x1;
-      c2[2] = vout2x2;
-      c2[3] = vout2x3;
-      c1[0] = vout1x0;
-      c1[1] = vout1x1;
-      c1[2] = vout1x2;
-      c1[3] = vout1x3;
       c0[0] = vout0x0;
       c0[1] = vout0x1;
       c0[2] = vout0x2;
       c0[3] = vout0x3;
+      c1[0] = vout1x0;
+      c1[1] = vout1x1;
+      c1[2] = vout1x2;
+      c1[3] = vout1x3;
+      c2[0] = vout2x0;
+      c2[1] = vout2x1;
+      c2[2] = vout2x2;
+      c2[3] = vout2x3;
+      c3[0] = vout3x0;
+      c3[1] = vout3x1;
+      c3[2] = vout3x2;
+      c3[3] = vout3x3;
 
       a0 = (const int8_t*) ((uintptr_t) a0 - kc);
       a1 = (const int8_t*) ((uintptr_t) a1 - kc);
@@ -6311,28 +6314,28 @@ void xnn_qd8_f32_qc4w_gemm_minmax_ukernel_4x4__wasm(
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vout3x0;
-        c3[1] = vout3x1;
-        vout3x0 = vout3x2;
-        c3 += 2;
-        c2[0] = vout2x0;
-        c2[1] = vout2x1;
-        vout2x0 = vout2x2;
-        c2 += 2;
-        c1[0] = vout1x0;
-        c1[1] = vout1x1;
-        vout1x0 = vout1x2;
-        c1 += 2;
         c0[0] = vout0x0;
         c0[1] = vout0x1;
         vout0x0 = vout0x2;
         c0 += 2;
+        c1[0] = vout1x0;
+        c1[1] = vout1x1;
+        vout1x0 = vout1x2;
+        c1 += 2;
+        c2[0] = vout2x0;
+        c2[1] = vout2x1;
+        vout2x0 = vout2x2;
+        c2 += 2;
+        c3[0] = vout3x0;
+        c3[1] = vout3x1;
+        vout3x0 = vout3x2;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vout3x0;
-        c2[0] = vout2x0;
-        c1[0] = vout1x0;
         c0[0] = vout0x0;
+        c1[0] = vout1x0;
+        c2[0] = vout2x0;
+        c3[0] = vout3x0;
       }
 
       nc = 0;
@@ -6679,22 +6682,22 @@ void xnn_qd8_f32_qc8w_gemm_minmax_ukernel_4x4__wasm(
     vout3x3 = __builtin_wasm_min_f32(vout3x3, voutput_max);
 
     if XNN_LIKELY(nc >= 4) {
-      c3[0] = vout3x0;
-      c3[1] = vout3x1;
-      c3[2] = vout3x2;
-      c3[3] = vout3x3;
-      c2[0] = vout2x0;
-      c2[1] = vout2x1;
-      c2[2] = vout2x2;
-      c2[3] = vout2x3;
-      c1[0] = vout1x0;
-      c1[1] = vout1x1;
-      c1[2] = vout1x2;
-      c1[3] = vout1x3;
       c0[0] = vout0x0;
       c0[1] = vout0x1;
       c0[2] = vout0x2;
       c0[3] = vout0x3;
+      c1[0] = vout1x0;
+      c1[1] = vout1x1;
+      c1[2] = vout1x2;
+      c1[3] = vout1x3;
+      c2[0] = vout2x0;
+      c2[1] = vout2x1;
+      c2[2] = vout2x2;
+      c2[3] = vout2x3;
+      c3[0] = vout3x0;
+      c3[1] = vout3x1;
+      c3[2] = vout3x2;
+      c3[3] = vout3x3;
 
       a0 = (const int8_t*) ((uintptr_t) a0 - kc);
       a1 = (const int8_t*) ((uintptr_t) a1 - kc);
@@ -6709,28 +6712,28 @@ void xnn_qd8_f32_qc8w_gemm_minmax_ukernel_4x4__wasm(
       nc -= 4;
     } else {
       if (nc & 2) {
-        c3[0] = vout3x0;
-        c3[1] = vout3x1;
-        vout3x0 = vout3x2;
-        c3 += 2;
-        c2[0] = vout2x0;
-        c2[1] = vout2x1;
-        vout2x0 = vout2x2;
-        c2 += 2;
-        c1[0] = vout1x0;
-        c1[1] = vout1x1;
-        vout1x0 = vout1x2;
-        c1 += 2;
         c0[0] = vout0x0;
         c0[1] = vout0x1;
         vout0x0 = vout0x2;
         c0 += 2;
+        c1[0] = vout1x0;
+        c1[1] = vout1x1;
+        vout1x0 = vout1x2;
+        c1 += 2;
+        c2[0] = vout2x0;
+        c2[1] = vout2x1;
+        vout2x0 = vout2x2;
+        c2 += 2;
+        c3[0] = vout3x0;
+        c3[1] = vout3x1;
+        vout3x0 = vout3x2;
+        c3 += 2;
       }
       if (nc & 1) {
-        c3[0] = vout3x0;
-        c2[0] = vout2x0;
-        c1[0] = vout1x0;
         c0[0] = vout0x0;
+        c1[0] = vout1x0;
+        c2[0] = vout2x0;
+        c3[0] = vout3x0;
       }
 
       nc = 0;

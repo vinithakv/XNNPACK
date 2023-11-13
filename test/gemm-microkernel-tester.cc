@@ -114,7 +114,8 @@ void GemmMicrokernelTester::Test(
       }
     }
     std::shuffle(im2col.begin(), im2col.end(), rng);
-    std::vector<int8_t> zero_points(k(), quantization_params[0].zero_point);
+    const size_t k_stride =  round_up_po2(k(), kr() * sr());
+    std::vector<int8_t> zero_points(k_stride + XNN_EXTRA_BYTES, quantization_params[0].zero_point);
     const int8_t* zero_sentinel = (const int8_t*) &packing_params;
     const int8_t* zero_data = zero_points.data();
     if (zero_index() != SIZE_MAX) {
@@ -634,6 +635,140 @@ void GemmMicrokernelTester::Test(
 }
 
 void GemmMicrokernelTester::Test(
+  xnn_qd8_f16_qc8w_gemm_ukernel_fn gemm,
+  xnn_init_f16_minmax_params_fn init_params,
+  xnn_pack_qs8_gemm_fn pack) const
+{
+  ASSERT_LE(m(), mr());
+
+  std::random_device random_device;
+  auto rng = std::mt19937(random_device());
+  auto f32rng = std::bind(std::uniform_real_distribution<float>(-1.f, 1.f), std::ref(rng));
+  auto scalerng = std::bind(std::uniform_real_distribution<float>(0.5f, 2.f), std::ref(rng));
+  auto w8rng = std::bind(
+      std::uniform_int_distribution<int32_t>(-std::numeric_limits<int8_t>::max(), std::numeric_limits<int8_t>::max()),
+      std::ref(rng));
+
+  std::vector<float> input(m() * k());
+  std::vector<int8_t> a((m() - 1) * a_stride() + k() + XNN_EXTRA_BYTES / sizeof(int8_t));
+  std::vector<xnn_qd8_quantization_params> quantization_params(mr());
+  std::vector<int8_t> b(n() * k());
+  std::vector<float> bias(n());
+  std::vector<float> kernel_scale(n());
+  std::vector<int8_t, AlignedAllocator<int8_t, 64>> packed_w(packed_n() * packed_k() +
+                                                             packed_n() * (sizeof(int32_t) + sizeof(float) * 2));
+  std::vector<uint16_t> c((mr() - 1) * cm_stride() + ((n() - 1) / nr()) * cn_stride() + (n() - 1) % nr() + 1);
+  std::vector<int32_t> acc(m() * n());
+  std::vector<float> c_ref(m() * n(), 0);
+
+  for (size_t iteration = 0; iteration < iterations(); iteration++) {
+    std::generate(input.begin(), input.end(), std::ref(f32rng));
+    for (size_t i = 0; i < m(); ++i) {
+      const float* input_ptr = &input[i * k()];
+      const auto minmax = std::minmax_element(input_ptr, input_ptr + k());
+      quantization_params[i] = xnn_f32_qd8_asymmetric_quantization_params(*minmax.first, *minmax.second);
+      const float inv_scale = 1.f / quantization_params[i].inv_scale;
+      for (size_t j = 0; j < k(); ++j) {
+        float scaled_input = input_ptr[j] * inv_scale;
+        scaled_input = std::min<float>(scaled_input, float(std::numeric_limits<int8_t>::max()
+                                                           - quantization_params[i].zero_point));
+        scaled_input = std::max<float>(scaled_input, float(std::numeric_limits<int8_t>::min()
+                                                           - quantization_params[i].zero_point));
+        a[i * a_stride() + j] = int8_t(std::lrintf(scaled_input) + long(quantization_params[i].zero_point));
+      }
+    }
+    for (size_t i = m(); i < mr(); ++i) {
+      quantization_params[i].zero_point = quantization_params[m() - 1].zero_point;
+      quantization_params[i].inv_scale = quantization_params[m() - 1].inv_scale;
+    }
+    std::generate(b.begin(), b.end(), std::ref(w8rng));
+
+    std::generate(bias.begin(), bias.end(), std::ref(f32rng));
+    std::generate(kernel_scale.begin(), kernel_scale.end(), std::ref(scalerng));
+    std::fill(c.begin(), c.end(), nanf(""));
+
+    std::fill(packed_w.begin(), packed_w.end(), 0);
+    // Row sums are multiplied by input zero point, since we don't know it
+    // until runtime, set it to 1.
+    const xnn_qs8_packing_params packing_params = { /*input_zero_point=*/1 };
+    pack(/*g=*/1, n(), k(), nr(), kr(), sr(),
+      b.data(), /*bias=*/nullptr, /*scale=*/nullptr, packed_w.data(), 2 * sizeof(float) * nr(), &packing_params);
+    // Fill in packed kernel scale
+    xnn_init_qs8_qc8w_scale_fp32_params(
+      n(), nr(), nr(),
+      nr() * (ks() * packed_k() * sizeof(int8_t) + 3 * sizeof(float)),
+      nr() * (ks() * packed_k() * sizeof(int8_t) + 3 * sizeof(float)),
+      0,
+      kernel_scale.data(),
+      (void*) ((uintptr_t) packed_w.data() + nr() * (ks() * packed_k() * sizeof(int8_t) + sizeof(float))));
+
+    // Fill in packed bias
+    xnn_init_qs8_qc8w_scale_fp32_params(
+      n(), nr(), nr(),
+      nr() * (ks() * packed_k() * sizeof(int8_t) + 3 * sizeof(float)),
+      nr() * (ks() * packed_k() * sizeof(int8_t) + 3 * sizeof(float)),
+      0,
+      bias.data(),
+      (void*) ((uintptr_t) packed_w.data() + nr() * (ks() * packed_k() * sizeof(int8_t) + 2 * sizeof(float))));
+
+    // Compute 32-bit results and output quantization arguments.
+    std::fill(c_ref.begin(), c_ref.end(), 0.0f);
+    for (size_t m_index = 0; m_index < m(); m_index++) {
+      for (size_t n_index = 0; n_index < n(); n_index++) {
+        int32_t ksum = 0;
+        for (size_t k_index = 0; k_index < k(); k_index++) {
+          ksum += b[n_index * k() + k_index];
+          c_ref[m_index * n() + n_index] +=
+              int32_t(a[m_index * a_stride() + k_index]) *
+              int32_t(b[n_index * k() + k_index]);
+        }
+        c_ref[m_index * n() + n_index] -= (quantization_params[m_index].zero_point * ksum);
+        c_ref[m_index * n() + n_index] *= quantization_params[m_index].inv_scale * kernel_scale[n_index];
+        c_ref[m_index * n() + n_index] += bias[n_index];
+      }
+    }
+
+    const float accumulated_min = *std::min_element(c_ref.cbegin(), c_ref.cend());
+    const float accumulated_max = *std::max_element(c_ref.cbegin(), c_ref.cend());
+    const float c_min =
+        qmin() == std::numeric_limits<uint8_t>::min() ? -std::numeric_limits<float>::infinity()
+        : accumulated_min + (accumulated_max - accumulated_min) / 255.0f * float(qmin());
+    const float c_max =
+        qmax() == std::numeric_limits<uint8_t>::max() ? +std::numeric_limits<float>::infinity()
+        : accumulated_max - (accumulated_max - accumulated_min) / 255.0f * float(255 - qmax());
+
+    // Prepare parameters.
+    xnn_f16_minmax_params params;
+    init_params(&params,
+      fp16_ieee_from_fp32_value(c_min),
+      fp16_ieee_from_fp32_value(c_max));
+
+    for (size_t m_index = 0; m_index < m(); m_index++) {
+      for (size_t n_index = 0; n_index < n(); n_index++) {
+        c_ref[m_index * n() + n_index] = std::max(std::min(c_ref[m_index * n() + n_index], c_max), c_min);
+      }
+    }
+
+    gemm(m(), n(), k(),
+        a.data(), a_stride() * sizeof(int8_t),
+        static_cast<const void*>(packed_w.data()),
+        c.data(), cm_stride() * sizeof(uint16_t), cn_stride() * sizeof(uint16_t), &params, quantization_params.data());
+
+    for (size_t i = 0; i < m(); i++) {
+      for (size_t j = 0; j < n(); j++) {
+        // Extract tolerance into variable to workaround test failures on Linux AArch64.
+        const float tolerance = std::max(1.0e-4f, std::abs(c_ref[i * n() + j]) * 1.0e-2f);
+        EXPECT_NEAR(fp16_ieee_to_fp32_value(c[i * cm_stride() + (j / nr()) * cn_stride() + j % nr()]), c_ref[i * n() + j], tolerance)
+            << "at " << i << ", " << j << ": reference = " << c_ref[i * n() + j]
+            << " (accumulator = " << acc[i * n() + j]
+            << "), optimized = " << c[i * cm_stride() + (j / nr()) * cn_stride() + j % nr()] << ", Mr x Nr x Kr = " << mr() << " x "
+            << nr() << " x " << kr() << ", M x N x K = " << m() << " x " << n() << " x " << k();
+      }
+    }
+  }
+}
+
+void GemmMicrokernelTester::Test(
   xnn_qd8_f32_qc8w_gemm_ukernel_fn gemm,
   xnn_init_f32_minmax_params_fn init_params,
   xnn_pack_qs8_gemm_fn pack) const
@@ -675,6 +810,10 @@ void GemmMicrokernelTester::Test(
                                                            - quantization_params[i].zero_point));
         a[i * a_stride() + j] = int8_t(std::lrintf(scaled_input) + long(quantization_params[i].zero_point));
       }
+    }
+    for (size_t i = m(); i < mr(); ++i) {
+      quantization_params[i].zero_point = quantization_params[m() - 1].zero_point;
+      quantization_params[i].inv_scale = quantization_params[m() - 1].inv_scale;
     }
     std::generate(b.begin(), b.end(), std::ref(w8rng));
 
@@ -762,6 +901,146 @@ void GemmMicrokernelTester::Test(
 }
 
 void GemmMicrokernelTester::Test(
+  xnn_qd8_f16_qc4w_gemm_ukernel_fn gemm,
+  xnn_init_f16_qc4w_minmax_params_fn init_params,
+  xnn_pack_qs8_qc4w_gemm_fn pack) const
+{
+  ASSERT_LE(m(), mr());
+
+  std::random_device random_device;
+  auto rng = std::mt19937(random_device());
+  auto f32rng = std::bind(std::uniform_real_distribution<float>(-1.f, 1.f), std::ref(rng));
+  auto scalerng = std::bind(std::uniform_real_distribution<float>(0.5f, 2.f), std::ref(rng));
+  auto w8rng = std::bind(
+      std::uniform_int_distribution<int32_t>(0, std::numeric_limits<uint8_t>::max()),
+      std::ref(rng));
+
+  const size_t planes = (pack == xnn_pack_qs8_qc4w_legacy_gemm_goi_w) ? 1 : 2;
+
+  const size_t k2 =  round_up_po2(k(), 2);  // tester assumes byte aligned rows
+  const size_t packed_k2 = round_up_po2(k(), kr() * sr() * planes);  // 2 blocks for nibbles
+  const size_t packed_k_bytes = (packed_k2 + 1)/ 2;
+
+  std::vector<float> input(m() * k2);
+  std::vector<int8_t> a((m() - 1) * a_stride() + k2 + XNN_EXTRA_BYTES / sizeof(int8_t));
+  std::vector<xnn_qd8_quantization_params> quantization_params(mr());
+  std::vector<uint8_t> b(n() * k2 / 2);
+  std::vector<float> bias(n());
+  std::vector<float> kernel_scale(n());
+  std::vector<uint8_t, AlignedAllocator<uint8_t, 64>> packed_w(packed_n() * packed_k_bytes +
+                                                               packed_n() * (sizeof(int32_t) + sizeof(float) * 2));
+  std::vector<uint16_t> c((mr() - 1) * cm_stride() + ((n() - 1) / nr()) * cn_stride() + (n() - 1) % nr() + 1);
+  std::vector<int32_t> acc(m() * n());
+  std::vector<float> c_ref(m() * n(), 0);
+
+  {//for (size_t iteration = 0; iteration < iterations(); iteration++) {
+    std::generate(input.begin(), input.end(), std::ref(f32rng));
+    for (size_t i = 0; i < m(); ++i) {
+      const float* input_ptr = &input[i * k2];
+      const auto minmax = std::minmax_element(input_ptr, input_ptr + k2);
+      quantization_params[i] = xnn_f32_qd8_asymmetric_quantization_params(*minmax.first, *minmax.second);
+      const float inv_scale = 1.f / quantization_params[i].inv_scale;
+      for (size_t j = 0; j < k2; ++j) {
+        float scaled_input = input_ptr[j] * inv_scale;
+        scaled_input = std::min<float>(scaled_input, float(std::numeric_limits<int8_t>::max()
+                                                           - quantization_params[i].zero_point));
+        scaled_input = std::max<float>(scaled_input, float(std::numeric_limits<int8_t>::min()
+                                                           - quantization_params[i].zero_point));
+        a[i * a_stride() + j] = int8_t(std::lrintf(scaled_input) + long(quantization_params[i].zero_point));
+      }
+    }
+    for (size_t i = m(); i < mr(); ++i) {
+      quantization_params[i].zero_point = quantization_params[m() - 1].zero_point;
+      quantization_params[i].inv_scale = quantization_params[m() - 1].inv_scale;
+    }
+
+    std::generate(b.begin(), b.end(), std::ref(w8rng));
+    std::generate(bias.begin(), bias.end(), std::ref(f32rng));
+    std::generate(kernel_scale.begin(), kernel_scale.end(), std::ref(scalerng));
+    std::fill(c.begin(), c.end(), nanf(""));
+    std::fill(packed_w.begin(), packed_w.end(), 0);
+    // Row sums are multiplied by input zero point, since we don't know it
+    // until runtime, set it to 1.
+    const xnn_qs8_qc4w_packing_params packing_params = { /*input_zero_point=*/1, b_zero_point()};
+    pack(/*g=*/1, n(), k2, nr(), kr(), sr(),
+      b.data(), /*bias=*/nullptr, /*scale=*/nullptr,
+      packed_w.data(), 2 * sizeof(float) * nr(), &packing_params);
+    // Fill in packed kernel scale
+    xnn_init_qs8_qc8w_scale_fp32_params(
+      n(), nr(), nr(),
+      nr() * (ks() * packed_k_bytes + 3 * sizeof(float)),
+      nr() * (ks() * packed_k_bytes + 3 * sizeof(float)),
+      0,
+      kernel_scale.data(),
+      (void*) ((uintptr_t) packed_w.data() + nr() * (ks() * packed_k_bytes + sizeof(float))));
+
+    // Fill in packed bias
+    xnn_init_qs8_qc8w_scale_fp32_params(
+      n(), nr(), nr(),
+      nr() * (ks() * packed_k_bytes + 3 * sizeof(float)),
+      nr() * (ks() * packed_k_bytes + 3 * sizeof(float)),
+      0,
+      bias.data(),
+      (void*) ((uintptr_t) packed_w.data() + nr() * (ks() * packed_k_bytes + 2 * sizeof(float))));
+
+    // Compute 32-bit results and output quantization arguments.
+    std::fill(c_ref.begin(), c_ref.end(), 0);
+    for (size_t m_index = 0; m_index < m(); m_index++) {
+      for (size_t n_index = 0; n_index < n(); n_index++) {
+        int32_t ksum = 0;
+        for (size_t k_index = 0; k_index < k2; k_index++) {
+          const size_t nb_index = (n_index * k2 + k_index) / 2;
+          const int32_t bv = int32_t((k_index % 2 == 0) ? (b[nb_index] & UINT8_C(0xF)) : (b[nb_index] >> 4)) - b_zero_point();
+          ksum += bv;
+          c_ref[m_index * n() + n_index] += int32_t(a[m_index * a_stride() + k_index]) * int32_t(bv);
+        }
+        c_ref[m_index * n() + n_index] -= (quantization_params[m_index].zero_point * ksum);
+        c_ref[m_index * n() + n_index] *= quantization_params[m_index].inv_scale * kernel_scale[n_index];
+        c_ref[m_index * n() + n_index] += bias[n_index];
+      }
+    }
+
+    const float accumulated_min = *std::min_element(c_ref.cbegin(), c_ref.cend());
+    const float accumulated_max = *std::max_element(c_ref.cbegin(), c_ref.cend());
+    const float c_min =
+        qmin() == std::numeric_limits<uint8_t>::min() ? -std::numeric_limits<float>::infinity()
+        : accumulated_min + (accumulated_max - accumulated_min) / 255.0f * float(qmin());
+    const float c_max =
+        qmax() == std::numeric_limits<uint8_t>::max() ? +std::numeric_limits<float>::infinity()
+        : accumulated_max - (accumulated_max - accumulated_min) / 255.0f * float(255 - qmax());
+
+    // Prepare parameters.
+    xnn_f16_qc4w_minmax_params params;
+    init_params(&params,
+      fp16_ieee_from_fp32_value(c_min),
+      fp16_ieee_from_fp32_value(c_max), 8);
+
+    for (size_t m_index = 0; m_index < m(); m_index++) {
+      for (size_t n_index = 0; n_index < n(); n_index++) {
+        c_ref[m_index * n() + n_index] = std::max(std::min(c_ref[m_index * n() + n_index], c_max), c_min);
+      }
+    }
+
+    gemm(m(), n(), k2,
+        a.data(), a_stride() * sizeof(int8_t),
+        static_cast<const void*>(packed_w.data()),
+        c.data(), cm_stride() * sizeof(uint16_t), cn_stride() * sizeof(uint16_t), &params, quantization_params.data());
+
+    for (size_t i = 0; i < m(); i++) {
+      for (size_t j = 0; j < n(); j++) {
+        // Extract tolerance into variable to workaround test failures on Linux AArch64.
+        const float tolerance = std::max(1.0e-4f, std::abs(c_ref[i * n() + j]) * 1.0e-2f);
+        EXPECT_NEAR(fp16_ieee_to_fp32_value(c[i * cm_stride() + (j / nr()) * cn_stride() + j % nr()]), c_ref[i * n() + j], tolerance)
+            << "at " << i << ", " << j << ": reference = " << c_ref[i * n() + j]
+            << " (accumulator = " << acc[i * n() + j]
+            << "), optimized = " << c[i * cm_stride() + (j / nr()) * cn_stride() + j % nr()] << ", Mr x Nr x Kr = " << mr() << " x "
+            << nr() << " x " << kr() << ", M x N x K = " << m() << " x " << n() << " x " << k();
+      }
+    }
+  }
+}
+
+void GemmMicrokernelTester::Test(
   xnn_qd8_f32_qc4w_gemm_ukernel_fn gemm,
   xnn_init_f32_qc4w_minmax_params_fn init_params,
   xnn_pack_qs8_qc4w_gemm_fn pack) const
@@ -809,6 +1088,10 @@ void GemmMicrokernelTester::Test(
                                                            - quantization_params[i].zero_point));
         a[i * a_stride() + j] = int8_t(std::lrintf(scaled_input) + long(quantization_params[i].zero_point));
       }
+    }
+    for (size_t i = m(); i < mr(); ++i) {
+      quantization_params[i].zero_point = quantization_params[m() - 1].zero_point;
+      quantization_params[i].inv_scale = quantization_params[m() - 1].inv_scale;
     }
 
     std::generate(b.begin(), b.end(), std::ref(w8rng));

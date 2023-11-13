@@ -223,6 +223,19 @@ typedef void (*xnn_qs8_gemm_minmax_ukernel_fn)(
     size_t cn_stride,
     const union xnn_qs8_conv_minmax_params params[XNN_RESTRICT XNN_MIN_ELEMENTS(1)]);
 
+typedef void (*xnn_qd8_f16_qc8w_gemm_ukernel_fn)(
+    size_t mr,
+    size_t nr,
+    size_t k,
+    const int8_t* a,
+    size_t a_stride,
+    const void* w,
+    void* c,
+    size_t cm_stride,
+    size_t cn_stride,
+    const union xnn_f16_minmax_params params[XNN_RESTRICT XNN_MIN_ELEMENTS(1)],
+    const struct xnn_qd8_quantization_params* quantization_params);
+
 typedef void (*xnn_qd8_f32_qc8w_gemm_ukernel_fn)(
     size_t mr,
     size_t nr,
@@ -234,6 +247,19 @@ typedef void (*xnn_qd8_f32_qc8w_gemm_ukernel_fn)(
     size_t cm_stride,
     size_t cn_stride,
     const union xnn_f32_minmax_params params[XNN_RESTRICT XNN_MIN_ELEMENTS(1)],
+    const struct xnn_qd8_quantization_params* quantization_params);
+
+typedef void (*xnn_qd8_f16_qc4w_gemm_ukernel_fn)(
+    size_t mr,
+    size_t nr,
+    size_t k,
+    const int8_t* a,
+    size_t a_stride,
+    const void* w,
+    void* c,
+    size_t cm_stride,
+    size_t cn_stride,
+    const union xnn_f16_qc4w_minmax_params params[XNN_RESTRICT XNN_MIN_ELEMENTS(1)],
     const struct xnn_qd8_quantization_params* quantization_params);
 
 typedef void (*xnn_qd8_f32_qc4w_gemm_ukernel_fn)(
@@ -1581,6 +1607,12 @@ typedef void (*xnn_f16_f32_vcvt_ukernel_fn)(
     float* output,
     const union xnn_f16_f32_cvt_params params[XNN_RESTRICT XNN_MIN_ELEMENTS(1)]);
 
+typedef void (*xnn_f16_qs8_vcvt_ukernel_fn)(
+    size_t batch,
+    const void* input,
+    int8_t* output,
+    const union xnn_f16_qs8_cvt_params params[XNN_RESTRICT XNN_MIN_ELEMENTS(1)]);
+
 typedef void (*xnn_f32_f16_vcvt_ukernel_fn)(
     size_t batch,
     const float* input,
@@ -2217,6 +2249,13 @@ typedef void (*xnn_f32_vscaleextexp_ukernel_fn)(
 typedef size_t (*xnn_init_f16_f32_cvt_params_fn)(
   union xnn_f16_f32_cvt_params params[XNN_MIN_ELEMENTS(1)]);
 
+typedef size_t (*xnn_init_f16_qs8_cvt_params_fn)(
+  union xnn_f16_qs8_cvt_params params[XNN_MIN_ELEMENTS(1)],
+  uint16_t scale,
+  int8_t output_zero_point,
+  int8_t output_min,
+  int8_t output_max);
+
 typedef size_t (*xnn_init_f32_f16_cvt_params_fn)(
   union xnn_f32_f16_cvt_params params[XNN_MIN_ELEMENTS(1)]);
 
@@ -2437,6 +2476,12 @@ typedef size_t (*xnn_init_f32_minmax_params_fn)(
   union xnn_f32_minmax_params params[XNN_MIN_ELEMENTS(1)],
   float min,
   float max);
+
+typedef size_t (*xnn_init_f16_qc4w_minmax_params_fn)(
+  union xnn_f16_qc4w_minmax_params params[XNN_MIN_ELEMENTS(1)],
+  uint16_t min,
+  uint16_t max,
+  uint8_t kernel_zero_point);
 
 typedef size_t (*xnn_init_f32_qc4w_minmax_params_fn)(
   union xnn_f32_qc4w_minmax_params params[XNN_MIN_ELEMENTS(1)],
