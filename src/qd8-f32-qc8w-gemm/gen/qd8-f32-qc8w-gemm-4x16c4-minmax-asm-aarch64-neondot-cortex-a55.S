@@ -483,7 +483,7 @@ BEGIN_FUNCTION xnn_qd8_f32_qc8w_gemm_minmax_ukernel_4x16c4__asm_aarch64_neondot_
         FADD        v21.4s, v21.4s, v1.4s
         FADD        v22.4s, v22.4s, v1.4s
         FADD        v23.4s, v23.4s, v1.4s
-        LD1R        {v0.4s}, [x11], #4      // min
+        LD2R        {v0.4s, v1.4s}, [x11]       // min max
         FADD        v24.4s, v24.4s, v2.4s
         FADD        v25.4s, v25.4s, v2.4s
         FADD        v26.4s, v26.4s, v2.4s
@@ -492,7 +492,6 @@ BEGIN_FUNCTION xnn_qd8_f32_qc8w_gemm_minmax_ukernel_4x16c4__asm_aarch64_neondot_
         FADD        v29.4s, v29.4s, v3.4s
         FADD        v30.4s, v30.4s, v3.4s
         FADD        v31.4s, v31.4s, v3.4s
-        LD1R        {v1.4s}, [x11]          //max
         FMAX        v16.4s, v16.4s, v0.4s
         FMAX        v17.4s, v17.4s, v0.4s
         FMAX        v18.4s, v18.4s, v0.4s
@@ -525,6 +524,7 @@ BEGIN_FUNCTION xnn_qd8_f32_qc8w_gemm_minmax_ukernel_4x16c4__asm_aarch64_neondot_
         FMIN        v29.4s, v29.4s, v1.4s
         FMIN        v30.4s, v30.4s, v1.4s
         FMIN        v31.4s, v31.4s, v1.4s
+
         SUBS        x1, x1, 16
         B.LO        6f
         STP         q19, q23, [x7]
@@ -543,7 +543,6 @@ BEGIN_FUNCTION xnn_qd8_f32_qc8w_gemm_minmax_ukernel_4x16c4__asm_aarch64_neondot_
         SUB         x15, x15, x2            // a1 -= kc
         SUB         x13, x13, x2            // a2 -= kc
         SUB         x4,  x4, x2             // a3 -= kc
-        SUB         x11, x11, 4               // rewind params pointer
         B.NE        0b
 
 

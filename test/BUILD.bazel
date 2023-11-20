@@ -1100,6 +1100,15 @@ xnnpack_unit_test(
 )
 
 xnnpack_unit_test(
+    name = "f16_vcmul_test",
+    srcs = [
+        "f16-vcmul.cc",
+        "vcmul-microkernel-tester.h",
+    ],
+    deps = MICROKERNEL_TEST_DEPS,
+)
+
+xnnpack_unit_test(
     name = "f32_vcmul_test",
     srcs = [
         "f32-vcmul.cc",
@@ -1520,6 +1529,9 @@ xnnpack_unit_test(
     timeout = "moderate",
     srcs = [
         "qd8-f16-qc8w-gemm-minmax.cc",
+        "qd8-f16-qc8w-gemm-minmax-2.cc",
+        "qd8-f16-qc8w-gemm-minmax-3.cc",
+        "qd8-f16-qc8w-gemm-minmax-4.cc",
     ],
     shard_count = 10,
     deps = MICROKERNEL_TEST_DEPS + [
@@ -3647,6 +3659,7 @@ xnnpack_unit_test(
         "fully-connected.cc",
     ],
     deps = [
+        "@FP16",
         "//:XNNPACK_test_mode",
         "//:aligned_allocator",
         "//:common",

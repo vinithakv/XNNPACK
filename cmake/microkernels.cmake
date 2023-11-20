@@ -1019,6 +1019,9 @@ SET(ALL_AVX2_MICROKERNEL_SRCS
   src/math/gen/f32-tanh-avx2-expm1minus-rr1-p6h5ts-div.c
   src/math/gen/f32-tanh-avx2-expm1minus-rr1-p6h5ts-nr1.c
   src/math/gen/f32-tanh-avx2-expm1minus-rr1-p6h5ts-nr1adj.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-1x8c8-minmax-avx2.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-2x8c8-minmax-avx2.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-3x8c8-minmax-avx2.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-1x8c8-minmax-avx2.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-2x8c8-minmax-avx2.c
   src/qd8-f32-qc4w-gemm/gen/qd8-f32-qc4w-gemm-3x8c8-minmax-avx2.c
@@ -4582,6 +4585,9 @@ SET(ALL_NEONFP16ARITH_MICROKERNEL_SRCS
   src/f16-vbinary/gen/f16-vsubc-minmax-neonfp16arith-u16.c
   src/f16-vclamp/gen/f16-vclamp-neonfp16arith-u8.c
   src/f16-vclamp/gen/f16-vclamp-neonfp16arith-u16.c
+  src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u8.c
+  src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u16.c
+  src/f16-vcmul/gen/f16-vcmul-neonfp16arith-u32.c
   src/f16-velu/gen/f16-velu-neonfp16arith-rr1-p3-u8.c
   src/f16-velu/gen/f16-velu-neonfp16arith-rr1-p3-u16.c
   src/f16-vhswish/gen/f16-vhswish-neonfp16arith-u8.c
@@ -4681,7 +4687,9 @@ SET(ALL_NEONFP16ARITH_MICROKERNEL_SRCS
   src/math/gen/f16-tanh-neonfp16arith-expm1minus-rr1-p3h2ts-nr1recps.c
   src/math/gen/f16-tanh-neonfp16arith-expm1minus-rr1-p3h2ts-nr1recpsadj.c
   src/math/gen/f16-tanh-neonfp16arith-expm1minus-rr1-p3h2ts-recpe.c
-  src/math/gen/f16-tanh-neonfp16arith-expm1minus-rr1-p3h2ts-recpeadj.c)
+  src/math/gen/f16-tanh-neonfp16arith-expm1minus-rr1-p3h2ts-recpeadj.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-1x8c2s4-minmax-neonfp16arith.c
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-2x8c2s4-minmax-neonfp16arith.c)
 
 SET(ALL_NEONFP16ARITH_AARCH64_MICROKERNEL_SRCS
   src/f16-vbinary/gen/f16-vdiv-minmax-aarch64-neonfp16arith-u8.c
@@ -9931,6 +9939,7 @@ SET(AARCH32_ASM_MICROKERNEL_SRCS
   src/f32-igemm/gen/f32-igemm-4x8-minmax-asm-aarch32-neon-cortex-a75-prfm.S
   src/f32-igemm/gen/f32-igemm-4x8-minmax-asm-aarch32-neon-cortex-a75.S
   src/f32-igemm/gen/f32-igemm-4x8-minmax-asm-aarch32-neon-ld64.S
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-4x8c4-minmax-asm-aarch32-neondotfp16arith-cortex-a55.S
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-4x8c4-minmax-asm-aarch32-neondot-cortex-a55.S
   src/qd8-f32-qc8w-igemm/gen/qd8-f32-qc8w-igemm-4x8c4-minmax-asm-aarch32-neondot-cortex-a55.S
   src/qs8-gemm/gen/qs8-gemm-1x8-minmax-rndnu-asm-aarch32-neon-mlal-lane-cortex-a7-prfm.S
@@ -10193,6 +10202,8 @@ SET(AARCH64_ASM_MICROKERNEL_SRCS
   src/f32-qc8w-gemm/gen/f32-qc8w-gemm-4x8-minmax-asm-aarch64-neonfma-ld128.S
   src/f32-qc8w-gemm/gen/f32-qc8w-gemm-6x8-minmax-asm-aarch64-neonfma-ld64.S
   src/f32-qc8w-gemm/gen/f32-qc8w-gemm-6x8-minmax-asm-aarch64-neonfma-ld128.S
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-4x16c4-minmax-asm-aarch64-neondot-ld128.S
+  src/qd8-f16-qc8w-gemm/gen/qd8-f16-qc8w-gemm-4x16c4-minmax-asm-aarch64-neondotfp16arith-cortex-a55.S
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-4x16c4-minmax-asm-aarch64-neondot-cortex-a55.S
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-4x16c4-minmax-asm-aarch64-neondot-ld64.S
   src/qd8-f32-qc8w-gemm/gen/qd8-f32-qc8w-gemm-4x16c4-minmax-asm-aarch64-neondot-ld128.S
